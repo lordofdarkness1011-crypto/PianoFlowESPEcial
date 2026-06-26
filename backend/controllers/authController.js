@@ -26,28 +26,19 @@ const googleLogin = async (req, res, next) => {
         
         let avatarUrlToSave = googleAvatarUrl; // Por defecto fallback a google
 
-        // Subir a PocketBase para evidenciar su uso
+        // Subir a Cloudinary
         try {
-            const FormData = require('form-data');
-            const { pb } = require('../utils/pb');
-            
-            const imgRes = await fetch(googleAvatarUrl);
-            const imgBuffer = Buffer.from(await imgRes.arrayBuffer());
-            
-            const formData = new FormData();
-            formData.append('file', imgBuffer, {
-                filename: `avatar_${googleId}.jpg`,
-                contentType: imgRes.headers.get('content-type') || 'image/jpeg',
+            const cloudinary = require('../utils/cloudinary');
+            // Cloudinary permite subir directamente desde una URL pública
+            const uploadResult = await cloudinary.uploader.upload(googleAvatarUrl, {
+                folder: 'pianoflow/avatars',
+                public_id: `avatar_${googleId}`,
+                overwrite: true
             });
-
-            // Enviar a la colección avatars
-            const record = await pb.collection('avatars').create(formData);
-            
-            // URL local de PocketBase
-            avatarUrlToSave = `http://localhost:8090/api/files/avatars/${record.id}/${record.file}`;
-            logger.info(`Avatar guardado en PocketBase físicamente: ${avatarUrlToSave}`);
-        } catch (pbError) {
-            logger.error(`Falló la subida a PocketBase, se usará URL de Google: ${pbError.message}`);
+            avatarUrlToSave = uploadResult.secure_url;
+            logger.info(`Avatar guardado en Cloudinary exitosamente: ${avatarUrlToSave}`);
+        } catch (cloudError) {
+            logger.error(`Falló la subida a Cloudinary, se usará URL de Google: ${cloudError.message}`);
         }
 
         // Buscar por email para evitar duplicados

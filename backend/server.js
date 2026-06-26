@@ -7,7 +7,6 @@ const { Server } = require('socket.io');
 const apiRoutes = require('./routes/api');
 const logger = require('./utils/logger');
 const errorHandler = require('./middlewares/errorHandler');
-const { initPocketBase } = require('./utils/pb');
 
 require('dotenv').config();
 
@@ -46,7 +45,4 @@ socketController(io);
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, async () => {
     logger.info(`Servidor PianoFlow Web (HTTP + WebSockets) corriendo en http://localhost:${PORT}`);
-    
-    // Autoconfigurar PocketBase al arrancar
-    await initPocketBase();
 });

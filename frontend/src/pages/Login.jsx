@@ -16,7 +16,8 @@ const Login = () => {
 
     const handleGoogleSuccess = async (credentialResponse) => {
         try {
-            const res = await fetch(`http://${window.location.hostname}:3000/api/auth/google`, {
+            const API_URL = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:3000`;
+            const res = await fetch(`${API_URL}/api/auth/google`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ googleToken: credentialResponse.credential })
@@ -43,7 +44,8 @@ const Login = () => {
         const payload = isRegistering ? { email, password, nombre } : { email, password };
 
         try {
-            const res = await fetch(`http://${window.location.hostname}:3000${endpoint}`, {
+            const API_URL = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:3000`;
+            const res = await fetch(`${API_URL}${endpoint}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
