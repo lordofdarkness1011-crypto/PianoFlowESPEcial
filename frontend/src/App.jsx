@@ -5,6 +5,7 @@ import { ThemeProvider } from './context/ThemeContext';
 import { InputProvider } from './context/InputContext';
 import ErrorBoundary from './components/ErrorBoundary';
 import OfflineBanner from './components/OfflineBanner';
+import SessionManager from './components/SessionManager';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile';
@@ -12,7 +13,9 @@ import MidiSetup from './pages/MidiSetup';
 import FreePlay from './pages/FreePlay';
 import ConcertRooms from './pages/ConcertRooms';
 import ConcertRoom from './pages/ConcertRoom';
-import PianoCanvas from './components/PianoCanvas';
+import SongList from './pages/SongList';
+import Gameplay from './pages/Gameplay';
+import Results from './pages/Results';
 import NotFound from './pages/NotFound';
 import Footer from './components/Footer';
 import './App.css';
@@ -30,9 +33,10 @@ function App() {
       <ThemeProvider>
         <InputProvider>
           <OfflineBanner />
-          <Router>
-              <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', background: 'var(--bg-base)' }}>
-                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+          <SessionManager>
+            <Router>
+                <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', background: 'var(--bg-base)' }}>
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
                       <Routes>
                           <Route path="/" element={<Login />} />
                           
@@ -72,26 +76,30 @@ function App() {
                               </ProtectedRoute>
                           } />
                           
-                          <Route path="/play" element={
+                          <Route path="/dashboard/songs" element={
                               <ProtectedRoute>
-                                  <div style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto', width: '100%' }}>
-                                      <button 
-                                          onClick={() => window.history.back()} 
-                                          className="btn-system"
-                                          style={{ marginBottom: '20px' }}>
-                                          ← Volver al Dashboard
-                                      </button>
-                                      <PianoCanvas />
-                                  </div>
+                                  <SongList />
                               </ProtectedRoute>
                           } />
 
+                          <Route path="/gameplay/:songId" element={
+                              <ProtectedRoute>
+                                  <Gameplay />
+                              </ProtectedRoute>
+                          } />
+
+                          <Route path="/results" element={
+                              <ProtectedRoute>
+                                  <Results />
+                              </ProtectedRoute>
+                          } />
                           <Route path="*" element={<NotFound />} />
                       </Routes>
                   </div>
                   <Footer />
               </div>
           </Router>
+          </SessionManager>
         </InputProvider>
       </ThemeProvider>
     </ErrorBoundary>

@@ -1,10 +1,11 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import { GoogleLogin } from '@react-oauth/google';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 
 const Login = () => {
-    const { login } = useContext(AuthContext);
+    const loginContext = useContext(AuthContext);
+    const { login } = loginContext;
     const navigate = useNavigate();
     
     const [isRegistering, setIsRegistering] = useState(false);
@@ -13,6 +14,12 @@ const Login = () => {
     const [nombre, setNombre] = useState('');
     const [errorMsg, setErrorMsg] = useState('');
     const [successMsg, setSuccessMsg] = useState('');
+
+    useEffect(() => {
+        if (loginContext.user) {
+            navigate('/dashboard');
+        }
+    }, [loginContext.user, navigate]);
 
     const handleGoogleSuccess = async (credentialResponse) => {
         try {

@@ -1,0 +1,26 @@
+[
+  {
+    "id": "escala_3oct",
+    "title": "Escala Simple (3 Octavas)",
+    "artist": "PianoFlow",
+    "difficulty": "Principiante",
+    "octaves": 3,
+    "file": "/songs/escala_3oct.mid"
+  },
+  {
+    "id": "rango_5oct",
+    "title": "Prueba de Rango (5 Octavas)",
+    "artist": "PianoFlow",
+    "difficulty": "Intermedio",
+    "octaves": 5,
+    "file": "/songs/rango_5oct.mid"
+  },
+  {
+    "id": "the_unforgiven",
+    "title": "The Unforgiven",
+    "artist": "Metallica",
+    "difficulty": "Avanzado",
+    "octaves": 5,
+    "file": "/songs/theunforgiven.mid"
+  }
+]

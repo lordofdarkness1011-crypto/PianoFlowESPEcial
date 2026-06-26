@@ -101,7 +101,7 @@ const Dashboard = () => {
                     </div>
                     <button 
                         className="btn-system" 
-                        onClick={() => navigate('/play')}
+                        onClick={() => navigate('/dashboard/songs')}
                         style={{ background: '#10b981', color: 'white', padding: '10px 20px', borderRadius: '50px' }}
                     >
                         Aprender
