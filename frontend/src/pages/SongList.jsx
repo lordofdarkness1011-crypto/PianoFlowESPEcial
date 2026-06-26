@@ -2,12 +2,16 @@ import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import songsData from '../data/songs.json';
 
+// Variable global de módulo para preservar las canciones locales durante la navegación (SPA)
+// Se limpia automáticamente si el usuario recarga la página con F5.
+let sessionLocalSongs = [];
+
 const SongList = () => {
     const navigate = useNavigate();
     const [selectedMode, setSelectedMode] = useState('wait'); // 'wait' o 'normal'
     const [selectedSpeed, setSelectedSpeed] = useState(1.0); // 0.5, 1.0, 1.5
     const [selectedHands, setSelectedHands] = useState('both'); // 'left', 'right', 'both'
-    const [localSongs, setLocalSongs] = useState([]);
+    const [localSongs, setLocalSongs] = useState(sessionLocalSongs);
     const fileInputRef = useRef(null);
 
     const handlePlay = (song) => {
@@ -24,7 +28,60 @@ const SongList = () => {
         });
     };
 
-    const handleFolderUpload = (e) => {
+    const handleFolderUpload = async () => {
+        try {
+            // Verificar si el navegador soporta File System Access API
+            if ('showDirectoryPicker' in window) {
+                const dirHandle = await window.showDirectoryPicker();
+                const midiFiles = [];
+
+                // Función recursiva para buscar solo los archivos MIDI
+                async function scanDirectory(handle) {
+                    for await (const entry of handle.values()) {
+                        if (entry.kind === 'file') {
+                            const name = entry.name.toLowerCase();
+                            if (name.endsWith('.mid') || name.endsWith('.midi')) {
+                                const file = await entry.getFile();
+                                midiFiles.push(file);
+                            }
+                        } else if (entry.kind === 'directory') {
+                            await scanDirectory(entry);
+                        }
+                    }
+                }
+
+                await scanDirectory(dirHandle);
+
+                if (midiFiles.length === 0) {
+                    alert('No se encontraron archivos MIDI en esta carpeta.');
+                    return;
+                }
+
+                const newSongs = midiFiles.map(file => ({
+                    id: `local-${file.name}-${Date.now()}`,
+                    title: file.name.replace(/\.[^/.]+$/, ""),
+                    artist: 'Archivo Local',
+                    difficulty: 'Desconocida',
+                    octaves: 5,
+                    file: URL.createObjectURL(file),
+                    isLocal: true
+                }));
+
+                sessionLocalSongs = [...sessionLocalSongs, ...newSongs];
+                setLocalSongs(sessionLocalSongs);
+            } else {
+                // Fallback para navegadores antiguos usando el input oculto
+                if (fileInputRef.current) {
+                    fileInputRef.current.click();
+                }
+            }
+        } catch (error) {
+            console.error("Error seleccionando carpeta:", error);
+            // El usuario canceló o denegó el permiso
+        }
+    };
+
+    const handleLegacyFolderUpload = (e) => {
         const files = Array.from(e.target.files);
         if (!files || files.length === 0) return;
 
@@ -39,17 +96,17 @@ const SongList = () => {
 
         const newSongs = midiFiles.map(file => ({
             id: `local-${file.name}-${Date.now()}`,
-            title: file.name.replace(/\.[^/.]+$/, ""), // quita la extensión
+            title: file.name.replace(/\.[^/.]+$/, ""),
             artist: 'Archivo Local',
             difficulty: 'Desconocida',
-            octaves: 5, // Default visual
+            octaves: 5,
             file: URL.createObjectURL(file),
             isLocal: true
         }));
 
-        setLocalSongs(prev => [...prev, ...newSongs]);
+        sessionLocalSongs = [...sessionLocalSongs, ...newSongs];
+        setLocalSongs(sessionLocalSongs);
 
-        // Limpiar el input
         if (fileInputRef.current) {
             fileInputRef.current.value = '';
         }
@@ -75,12 +132,12 @@ const SongList = () => {
                         directory="true" 
                         multiple
                         ref={fileInputRef} 
-                        onChange={handleFolderUpload} 
+                        onChange={handleLegacyFolderUpload} 
                         style={{ display: 'none' }} 
                     />
                     <button 
                         className="btn-system btn-accent" 
-                        onClick={() => fileInputRef.current.click()}
+                        onClick={handleFolderUpload}
                         style={{ background: '#10b981', borderColor: '#10b981', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
                     >
                         <span>📂</span> Añadir Carpeta Local
