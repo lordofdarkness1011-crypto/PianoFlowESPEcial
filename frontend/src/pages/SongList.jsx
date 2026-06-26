@@ -7,6 +7,7 @@ const SongList = () => {
     const [selectedMode, setSelectedMode] = useState('wait'); // 'wait' o 'normal'
     const [selectedSpeed, setSelectedSpeed] = useState(1.0); // 0.5, 1.0, 1.5
     const [selectedHands, setSelectedHands] = useState('both'); // 'left', 'right', 'both'
+    const [localSongs, setLocalSongs] = useState([]);
     const fileInputRef = useRef(null);
 
     const handlePlay = (song) => {
@@ -23,25 +24,35 @@ const SongList = () => {
         });
     };
 
-    const handleFileUpload = (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
+    const handleFolderUpload = (e) => {
+        const files = Array.from(e.target.files);
+        if (!files || files.length === 0) return;
 
-        // Crear una URL temporal y local (Blob) para el archivo
-        const localFileUrl = URL.createObjectURL(file);
+        const midiFiles = files.filter(file => 
+            file.name.toLowerCase().endsWith('.mid') || file.name.toLowerCase().endsWith('.midi')
+        );
 
-        // Construir un objeto "Canción" ficticio
-        const localSong = {
-            id: `local-${Date.now()}`,
-            title: file.name,
+        if (midiFiles.length === 0) {
+            alert('No se encontraron archivos MIDI en la carpeta seleccionada.');
+            return;
+        }
+
+        const newSongs = midiFiles.map(file => ({
+            id: `local-${file.name}-${Date.now()}`,
+            title: file.name.replace(/\.[^/.]+$/, ""), // quita la extensión
             artist: 'Archivo Local',
             difficulty: 'Desconocida',
             octaves: 5, // Default visual
-            file: localFileUrl
-        };
+            file: URL.createObjectURL(file),
+            isLocal: true
+        }));
 
-        // Redirigir directamente al gameplay
-        handlePlay(localSong);
+        setLocalSongs(prev => [...prev, ...newSongs]);
+
+        // Limpiar el input
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+        }
     };
 
     return (
@@ -60,9 +71,11 @@ const SongList = () => {
                 <div style={{ display: 'flex', gap: '1rem' }}>
                     <input 
                         type="file" 
-                        accept=".mid,.midi" 
+                        webkitdirectory="true" 
+                        directory="true" 
+                        multiple
                         ref={fileInputRef} 
-                        onChange={handleFileUpload} 
+                        onChange={handleFolderUpload} 
                         style={{ display: 'none' }} 
                     />
                     <button 
@@ -70,7 +83,7 @@ const SongList = () => {
                         onClick={() => fileInputRef.current.click()}
                         style={{ background: '#10b981', borderColor: '#10b981', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
                     >
-                        <span>📁</span> Importar MIDI Local
+                        <span>📂</span> Añadir Carpeta Local
                     </button>
                 </div>
             </div>
@@ -117,10 +130,15 @@ const SongList = () => {
 
             {/* Lista de Canciones */}
             <div style={{ display: 'grid', gap: '1.5rem', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))' }}>
-                {songsData.map((song) => (
-                    <div key={song.id} className="system-panel" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                {[...songsData, ...localSongs].map((song) => (
+                    <div key={song.id} className="system-panel" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', position: 'relative' }}>
+                        {song.isLocal && (
+                            <div style={{ position: 'absolute', top: '-10px', right: '-10px', background: '#10b981', color: '#000', padding: '4px 8px', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 'bold' }}>
+                                [Local]
+                            </div>
+                        )}
                         <div>
-                            <h2 style={{ fontSize: '1.4rem', margin: '0 0 0.5rem 0' }}>{song.title}</h2>
+                            <h2 style={{ fontSize: '1.4rem', margin: '0 0 0.5rem 0', wordBreak: 'break-word' }}>{song.title}</h2>
                             <p style={{ color: 'var(--text-muted)', margin: 0 }}>Artista: {song.artist}</p>
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
