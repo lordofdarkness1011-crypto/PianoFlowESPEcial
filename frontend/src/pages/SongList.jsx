@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import songsData from '../data/songs.json';
 
@@ -7,6 +7,7 @@ const SongList = () => {
     const [selectedMode, setSelectedMode] = useState('wait'); // 'wait' o 'normal'
     const [selectedSpeed, setSelectedSpeed] = useState(1.0); // 0.5, 1.0, 1.5
     const [selectedHands, setSelectedHands] = useState('both'); // 'left', 'right', 'both'
+    const fileInputRef = useRef(null);
 
     const handlePlay = (song) => {
         // Navegar a la vista del juego con la configuración
@@ -22,16 +23,56 @@ const SongList = () => {
         });
     };
 
+    const handleFileUpload = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        // Crear una URL temporal y local (Blob) para el archivo
+        const localFileUrl = URL.createObjectURL(file);
+
+        // Construir un objeto "Canción" ficticio
+        const localSong = {
+            id: `local-${Date.now()}`,
+            title: file.name,
+            artist: 'Archivo Local',
+            difficulty: 'Desconocida',
+            octaves: 5, // Default visual
+            file: localFileUrl
+        };
+
+        // Redirigir directamente al gameplay
+        handlePlay(localSong);
+    };
+
     return (
         <div style={{ padding: '2rem', maxWidth: '1000px', margin: '0 auto', color: 'var(--text-light)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '2rem' }}>
-                <button 
-                    className="btn-system" 
-                    onClick={() => navigate('/dashboard')}
-                >
-                    ← Volver
-                </button>
-                <h1 className="text-gradient" style={{ margin: 0, fontSize: '2.5rem' }}>Elige una Canción</h1>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                    <button 
+                        className="btn-system" 
+                        onClick={() => navigate('/dashboard')}
+                    >
+                        ← Volver
+                    </button>
+                    <h1 className="text-gradient" style={{ margin: 0, fontSize: '2.5rem' }}>Elige una Canción</h1>
+                </div>
+
+                <div style={{ display: 'flex', gap: '1rem' }}>
+                    <input 
+                        type="file" 
+                        accept=".mid,.midi" 
+                        ref={fileInputRef} 
+                        onChange={handleFileUpload} 
+                        style={{ display: 'none' }} 
+                    />
+                    <button 
+                        className="btn-system btn-accent" 
+                        onClick={() => fileInputRef.current.click()}
+                        style={{ background: '#10b981', borderColor: '#10b981', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                    >
+                        <span>📁</span> Importar MIDI Local
+                    </button>
+                </div>
             </div>
             
             {/* Opciones Globales */}
