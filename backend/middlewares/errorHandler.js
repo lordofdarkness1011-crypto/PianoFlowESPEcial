@@ -6,7 +6,7 @@ const logger = require('../utils/logger');
  */
 const errorHandler = (err, req, res, next) => {
     // Registramos el error en app.log a través de Winston
-    logger.error(`${err.status || 500} - ${err.message} - ${req.originalUrl} - ${req.method} - ${req.ip}`);
+    logger.error(`${err.statusCode || err.status || 500} - ${err.message} - ${req.originalUrl} - ${req.method} - ${req.ip}`);
     
     // Si hay un stack trace y no es error de validación simple, lo mandamos al log
     if (err.stack) {
@@ -14,7 +14,7 @@ const errorHandler = (err, req, res, next) => {
     }
 
     // Configurar el código de estado HTTP
-    const statusCode = err.status || 500;
+    const statusCode = err.statusCode || err.status || 500;
     
     // Devolvemos una respuesta estándar en JSON
     res.status(statusCode).json({
