@@ -6,8 +6,14 @@ const {
 const { requirePremiumAuth } = require('../middlewares/jwtMiddleware');
 const { guardarPartidaConTransaccion } = require('../services/partidaService');
 const pagosRoutes = require('./pagosRoutes');
+const queueRepo = require('../repositories/queue.repository');
 
 const router = express.Router();
+
+// Endpoint de prueba de la cola (Solo para desarrollo/debug)
+router.get('/queue', (req, res) => {
+    res.json({ success: true, tasks: queueRepo.getAll() });
+});
 
 // Rutas públicas: Autenticación
 router.post('/auth/google', googleLogin);
