@@ -12,6 +12,13 @@ CREATE TABLE IF NOT EXISTS usuarios (
     avatar_url TEXT,
     nivel_habilidad nivel_habilidad_enum NOT NULL DEFAULT 'invitado',
     tipo_suscripcion tipo_suscripcion_enum NOT NULL DEFAULT 'freemium',
+    status VARCHAR(20) DEFAULT 'ACTIVE',
+    mfa_enabled BOOLEAN DEFAULT FALSE,
+    mfa_secret TEXT,
+    pending_mfa_secret TEXT,
+    verification_code VARCHAR(10),
+    expires_at TIMESTAMP,
+    verification_attempts INTEGER DEFAULT 0,
     puntuacion_total INTEGER DEFAULT 0,
     creado_en TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     actualizado_en TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP

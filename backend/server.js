@@ -7,6 +7,7 @@ const { Server } = require('socket.io');
 const apiRoutes = require('./routes/api');
 const logger = require('./utils/logger');
 const errorHandler = require('./middlewares/errorHandler');
+const worker = require('./worker');
 
 require('dotenv').config();
 
@@ -45,4 +46,7 @@ socketController(io);
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, async () => {
     logger.info(`Servidor PianoFlow Web (HTTP + WebSockets) corriendo en http://localhost:${PORT}`);
+    
+    // Iniciar el worker de la cola (para envío de correos OTP en background)
+    worker.start();
 });

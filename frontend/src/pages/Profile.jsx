@@ -1,10 +1,73 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+
 const Profile = () => {
-    const { user } = useContext(AuthContext);
+    const { user, token } = useContext(AuthContext);
     const navigate = useNavigate();
+
+    const [mfaEnabled, setMfaEnabled] = useState(false);
+    const [qrCode, setQrCode] = useState('');
+    const [mfaCode, setMfaCode] = useState('');
+    const [mfaError, setMfaError] = useState('');
+    const [mfaSuccess, setMfaSuccess] = useState('');
+    
+    useEffect(() => {
+        if (user && user.email) {
+            fetch(`${API_URL}/api/mfa/status/${user.email}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success && data.user) {
+                        setMfaEnabled(data.user.mfaEnabled);
+                    }
+                })
+                .catch(err => console.error("Error fetching MFA status", err));
+        }
+    }, [user]);
+
+    const handleSetupMfa = async () => {
+        setMfaError('');
+        setMfaSuccess('');
+        try {
+            const res = await fetch(`${API_URL}/api/mfa/setup`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: user.email })
+            });
+            const data = await res.json();
+            if (data.success) {
+                setQrCode(data.qrCode);
+            } else {
+                setMfaError(data.message);
+            }
+        } catch (err) {
+            setMfaError('Error configurando MFA');
+        }
+    };
+
+    const handleConfirmMfa = async () => {
+        setMfaError('');
+        setMfaSuccess('');
+        try {
+            const res = await fetch(`${API_URL}/api/mfa/confirm`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: user.email, code: mfaCode })
+            });
+            const data = await res.json();
+            if (data.success) {
+                setMfaEnabled(true);
+                setQrCode('');
+                setMfaSuccess('Autenticación de dos pasos activada correctamente.');
+            } else {
+                setMfaError(data.message);
+            }
+        } catch (err) {
+            setMfaError('Error confirmando MFA');
+        }
+    };
 
     if (!user) return null;
 
@@ -43,7 +106,7 @@ const Profile = () => {
                         </p>
                     </div>
                     {!isPremium && (
-                        <button className="btn-system btn-accent">Mejorar a Premium</button>
+                        <button className="btn-system btn-accent" onClick={() => navigate('/rooms')}>Mejorar a Premium</button>
                     )}
                 </div>
             </div>
@@ -56,6 +119,45 @@ const Profile = () => {
                     <option value="avanzado">Avanzado (Sin guías visuales)</option>
                 </select>
                 <button className="btn-system" style={{ marginTop: '1rem', width: '100%', background: 'var(--accent-primary)', color: 'white' }}>Guardar Preferencias</button>
+            </div>
+
+            <div className="system-panel">
+                <h2 style={{ margin: '0 0 1rem 0', fontSize: '1.2rem', color: 'var(--text-muted)' }}>Seguridad</h2>
+                
+                <div style={{ background: 'var(--bg-base)', padding: '1rem', borderRadius: '8px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div>
+                            <span style={{ fontWeight: '600' }}>Autenticación en dos pasos (MFA)</span>
+                            <p style={{ margin: '4px 0 0 0', fontSize: '0.9rem', color: 'var(--text-muted)' }}>
+                                {mfaEnabled ? 'Activada' : 'Desactivada'}
+                            </p>
+                        </div>
+                        {!mfaEnabled && !qrCode && (
+                            <button className="btn-system" onClick={handleSetupMfa}>Activar 2FA</button>
+                        )}
+                    </div>
+
+                    {mfaError && <p style={{ color: '#ef4444', marginTop: '1rem' }}>{mfaError}</p>}
+                    {mfaSuccess && <p style={{ color: '#10b981', marginTop: '1rem' }}>{mfaSuccess}</p>}
+
+                    {qrCode && (
+                        <div style={{ marginTop: '1.5rem', display: 'flex', flexDirection: 'column', alignItems: 'center', background: '#fff', padding: '1rem', borderRadius: '8px', color: '#000' }}>
+                            <p style={{ fontWeight: 'bold' }}>Escanea este código con Microsoft o Google Authenticator:</p>
+                            <img src={qrCode} alt="QR Code MFA" style={{ width: '200px', height: '200px' }} />
+                            <div style={{ marginTop: '1rem', width: '100%', display: 'flex', gap: '10px' }}>
+                                <input 
+                                    type="text" 
+                                    className="system-input" 
+                                    style={{ flex: 1, border: '1px solid #ccc', color: '#000' }}
+                                    placeholder="Ingresa el código de 6 dígitos"
+                                    value={mfaCode}
+                                    onChange={(e) => setMfaCode(e.target.value)}
+                                />
+                                <button className="btn-system btn-accent" onClick={handleConfirmMfa}>Confirmar</button>
+                            </div>
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     );

@@ -38,6 +38,25 @@ const requirePremiumAuth = (req, res, next) => {
     }
 };
 
+const requireAuth = (req, res, next) => {
+    try {
+        const authHeader = req.headers.authorization;
+        
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            return res.status(401).json({ success: false, message: 'Token JWT ausente o con formato inválido' });
+        }
+
+        const token = authHeader.split(' ')[1];
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        req.user = decoded;
+        next();
+    } catch (error) {
+        logger.error(`Token JWT rechazado (requireAuth): ${error.message}`);
+        return res.status(401).json({ success: false, message: 'Token expirado o manipulado' });
+    }
+};
+
 module.exports = {
-    requirePremiumAuth
+    requirePremiumAuth,
+    requireAuth
 };

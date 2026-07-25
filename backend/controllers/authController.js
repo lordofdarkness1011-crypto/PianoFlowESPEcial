@@ -3,6 +3,8 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const pool = require('../utils/db');
 const logger = require('../utils/logger');
+const verificationService = require('../services/verification.service');
+const mfaService = require('../services/mfa.service');
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
@@ -89,33 +91,21 @@ const googleLogin = async (req, res, next) => {
 };
 
 // -------------------------------------------------------------
-// LOGIN TRADICIONAL
+// LOGIN TRADICIONAL (MFA)
 // -------------------------------------------------------------
 const loginTradicional = async (req, res, next) => {
     try {
         const { email, password } = req.body;
+        const result = await mfaService.loginFirstStep({ email, password });
 
-        if (!email || !password) {
-            return res.status(400).json({ success: false, message: 'Email y contraseña son requeridos' });
+        if (result.requiresMfa) {
+            return res.status(200).json({ success: true, requiresMfa: true, message: result.message, email });
         }
 
+        // Si no requiere MFA, procedemos con JWT
         let query = 'SELECT * FROM usuarios WHERE email = $1';
-        let result = await pool.query(query, [email]);
-        let usuario = result.rows[0];
-
-        if (!usuario) {
-            return res.status(401).json({ success: false, message: 'Credenciales inválidas' });
-        }
-
-        if (!usuario.password_hash) {
-            return res.status(401).json({ success: false, message: 'Esta cuenta se creó con Google. Usa el botón de Google para iniciar sesión.' });
-        }
-
-        // Comparar contraseñas
-        const isMatch = await bcrypt.compare(password, usuario.password_hash);
-        if (!isMatch) {
-            return res.status(401).json({ success: false, message: 'Credenciales inválidas' });
-        }
+        let userResult = await pool.query(query, [email]);
+        let usuario = userResult.rows[0];
 
         const jwtPayload = {
             id: usuario.id,
@@ -135,42 +125,92 @@ const loginTradicional = async (req, res, next) => {
     }
 };
 
+const verifyMfaLogin = async (req, res, next) => {
+    try {
+        const { email, code } = req.body;
+        await mfaService.verifyMfaLogin({ email, code });
+
+        let query = 'SELECT * FROM usuarios WHERE email = $1';
+        let userResult = await pool.query(query, [email]);
+        let usuario = userResult.rows[0];
+
+        const jwtPayload = {
+            id: usuario.id,
+            email: usuario.email,
+            nombre: usuario.nombre,
+            avatar_url: usuario.avatar_url,
+            nivel_habilidad: usuario.nivel_habilidad,
+            tipo_suscripcion: usuario.tipo_suscripcion
+        };
+
+        const token = jwt.sign(jwtPayload, process.env.JWT_SECRET, { expiresIn: '24h' });
+        logger.info(`Login exitoso MFA: ${email}`);
+        res.status(200).json({ success: true, token, user: jwtPayload });
+    } catch (error) {
+        logger.error(`Error en verifyMfaLogin: ${error.message}`);
+        next(error);
+    }
+};
+
 // -------------------------------------------------------------
 // REGISTRO TRADICIONAL
 // -------------------------------------------------------------
 const registroTradicional = async (req, res, next) => {
     try {
         const { email, password, nombre } = req.body;
-
-        if (!email || !password || !nombre) {
-            return res.status(400).json({ success: false, message: 'Email, contraseña y nombre son requeridos' });
-        }
-
-        // Verificar colisión
-        let query = 'SELECT * FROM usuarios WHERE email = $1';
-        let result = await pool.query(query, [email]);
-        
-        if (result.rows.length > 0) {
-            return res.status(409).json({ success: false, message: 'Ya existe una cuenta con este correo' });
-        }
-
-        // Encriptar password
-        const salt = await bcrypt.genSalt(10);
-        const passwordHash = await bcrypt.hash(password, salt);
-
-        // Insertar usuario
-        const insertQuery = `
-            INSERT INTO usuarios (email, password_hash, nombre)
-            VALUES ($1, $2, $3)
-            RETURNING *;
-        `;
-        const insertResult = await pool.query(insertQuery, [email, passwordHash, nombre]);
-        
-        logger.info(`Nuevo registro: Usuario creado vía Tradicional. Email: ${email}`);
-
-        res.status(201).json({ success: true, message: 'Usuario registrado exitosamente. Por favor, inicia sesión.' });
+        const result = await verificationService.registerUser({ name: nombre, email, password });
+        logger.info(`Nuevo registro iniciado (INACTIVE): Email: ${email}`);
+        res.status(201).json({ success: true, message: result.message, user: result.user });
     } catch (error) {
         logger.error(`Error en registroTradicional: ${error.message}`);
+        next(error);
+    }
+};
+
+const verifyAccount = async (req, res, next) => {
+    try {
+        const result = await verificationService.verifyAccount(req.body);
+        res.status(200).json({ success: true, ...result });
+    } catch (error) {
+        next(error);
+    }
+};
+
+const resendCode = async (req, res, next) => {
+    try {
+        const result = await verificationService.resendVerificationCode(req.body.email);
+        res.status(200).json({ success: true, ...result });
+    } catch (error) {
+        next(error);
+    }
+};
+
+// -------------------------------------------------------------
+// MFA CONFIGURATION
+// -------------------------------------------------------------
+const setupMfa = async (req, res, next) => {
+    try {
+        const result = await mfaService.startMfaSetup({ email: req.body.email });
+        res.status(200).json({ success: true, ...result });
+    } catch (error) {
+        next(error);
+    }
+};
+
+const confirmMfa = async (req, res, next) => {
+    try {
+        const result = await mfaService.confirmMfaSetup(req.body);
+        res.status(200).json({ success: true, ...result });
+    } catch (error) {
+        next(error);
+    }
+};
+
+const getMfaStatus = async (req, res, next) => {
+    try {
+        const result = await mfaService.getMfaStatus(req.params.email);
+        res.status(200).json({ success: true, ...result });
+    } catch (error) {
         next(error);
     }
 };
@@ -178,5 +218,11 @@ const registroTradicional = async (req, res, next) => {
 module.exports = {
     googleLogin,
     loginTradicional,
-    registroTradicional
+    verifyMfaLogin,
+    registroTradicional,
+    verifyAccount,
+    resendCode,
+    setupMfa,
+    confirmMfa,
+    getMfaStatus
 };

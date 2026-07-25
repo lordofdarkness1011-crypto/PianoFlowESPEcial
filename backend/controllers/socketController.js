@@ -4,6 +4,9 @@ const crypto = require('crypto');
 // Memoria de salas: { roomId: { id, name, isPrivate, password, users: { socketId: { ...user } } } }
 const rooms = {};
 
+// Memoria de sesiones globales: { userId: { socketId, deviceId } }
+const activeSessions = {};
+
 const getPublicRooms = () => {
     return Object.values(rooms).map(room => ({
         id: room.id,
@@ -16,6 +19,29 @@ const getPublicRooms = () => {
 module.exports = (io) => {
     io.on('connection', (socket) => {
         logger.info(`[Socket.io] Nueva conexión establecida. ID: ${socket.id}`);
+
+        // REGISTRO DE SESIÓN GLOBAL (Control de Dispositivos)
+        socket.on('register_session', (data) => {
+            const { userId, deviceId } = data;
+            
+            if (activeSessions[userId]) {
+                const oldSession = activeSessions[userId];
+                
+                // Si existe otra sesión y el deviceId es distinto, forzamos cierre de sesión al viejo
+                if (oldSession.deviceId !== deviceId) {
+                    logger.info(`[Session] Usuario ${userId} inició sesión en otro dispositivo. Desconectando socket anterior: ${oldSession.socketId}`);
+                    io.to(oldSession.socketId).emit('force_logout', 'Has iniciado sesión en otro dispositivo. Esta sesión se cerrará.');
+                }
+            }
+            
+            // Actualizamos la sesión activa con el nuevo socket y dispositivo
+            activeSessions[userId] = {
+                socketId: socket.id,
+                deviceId: deviceId
+            };
+            
+            socket.userId = userId; // Lo guardamos en el socket para limpieza al desconectar
+        });
 
         // Enviar salas activas al conectarse
         socket.emit('rooms_updated', getPublicRooms());
@@ -115,6 +141,12 @@ module.exports = (io) => {
 
         socket.on('disconnect', () => {
             leaveCurrentRoom(socket, io);
+            
+            // Limpiar sesión global si este socket era el activo
+            if (socket.userId && activeSessions[socket.userId]?.socketId === socket.id) {
+                delete activeSessions[socket.userId];
+            }
+            
             logger.info(`[Socket.io] Conexión cerrada. ID: ${socket.id}`);
         });
     });

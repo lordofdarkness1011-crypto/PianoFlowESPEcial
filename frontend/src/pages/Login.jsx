@@ -9,9 +9,12 @@ const Login = () => {
     const navigate = useNavigate();
     
     const [isRegistering, setIsRegistering] = useState(false);
+    const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
+    const [isVerifyingMfa, setIsVerifyingMfa] = useState(false);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [nombre, setNombre] = useState('');
+    const [code, setCode] = useState('');
     const [errorMsg, setErrorMsg] = useState('');
     const [successMsg, setSuccessMsg] = useState('');
 
@@ -47,11 +50,50 @@ const Login = () => {
         setErrorMsg('');
         setSuccessMsg('');
 
-        const endpoint = isRegistering ? '/api/auth/register' : '/api/auth/login';
-        const payload = isRegistering ? { email, password, nombre } : { email, password };
-
         try {
             const API_URL = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:3000`;
+            
+            if (isVerifyingOtp) {
+                // Verificar código OTP
+                const res = await fetch(`${API_URL}/api/auth/verify`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, code })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    setSuccessMsg('¡Cuenta verificada! Ahora puedes iniciar sesión.');
+                    setIsVerifyingOtp(false);
+                    setIsRegistering(false);
+                    setCode('');
+                    setPassword('');
+                } else {
+                    setErrorMsg(data.message);
+                }
+                return;
+            }
+
+            if (isVerifyingMfa) {
+                // Verificar código MFA
+                const res = await fetch(`${API_URL}/api/auth/login/verify`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, code })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    login(data.user, data.token);
+                    navigate('/dashboard');
+                } else {
+                    setErrorMsg(data.message);
+                }
+                return;
+            }
+
+            // Normal Login o Registro
+            const endpoint = isRegistering ? '/api/auth/register' : '/api/auth/login';
+            const payload = isRegistering ? { email, password, nombre } : { email, password };
+
             const res = await fetch(`${API_URL}${endpoint}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -62,11 +104,15 @@ const Login = () => {
             if (data.success) {
                 if (isRegistering) {
                     setSuccessMsg(data.message);
-                    setIsRegistering(false);
-                    setPassword('');
+                    setIsVerifyingOtp(true);
                 } else {
-                    login(data.user, data.token);
-                    navigate('/dashboard');
+                    if (data.requiresMfa) {
+                        setIsVerifyingMfa(true);
+                        setSuccessMsg(data.message);
+                    } else {
+                        login(data.user, data.token);
+                        navigate('/dashboard');
+                    }
                 }
             } else {
                 setErrorMsg(data.message);
@@ -94,44 +140,65 @@ const Login = () => {
 
                 {/* Formulario */}
                 <form onSubmit={handleTraditionalAuth} style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem', marginBottom: '2rem' }}>
-                    {isRegistering && (
-                        <div>
-                            <input 
-                                type="text" 
-                                className="system-input"
-                                placeholder="Tu nombre"
-                                value={nombre} 
-                                onChange={(e) => setNombre(e.target.value)}
-                                required
-                            />
-                        </div>
+                    
+                    {(isVerifyingOtp || isVerifyingMfa) ? (
+                        <>
+                            <div>
+                                <input 
+                                    type="text" 
+                                    className="system-input"
+                                    placeholder={isVerifyingOtp ? "Código enviado a tu correo" : "Código del Autenticador"}
+                                    value={code} 
+                                    onChange={(e) => setCode(e.target.value)}
+                                    required
+                                />
+                            </div>
+                            <button type="submit" className="btn-system btn-accent" style={{ width: '100%', marginTop: '0.5rem', padding: '14px' }}>
+                                Verificar
+                            </button>
+                        </>
+                    ) : (
+                        <>
+                            {isRegistering && (
+                                <div>
+                                    <input 
+                                        type="text" 
+                                        className="system-input"
+                                        placeholder="Tu nombre"
+                                        value={nombre} 
+                                        onChange={(e) => setNombre(e.target.value)}
+                                        required
+                                    />
+                                </div>
+                            )}
+                            <div>
+                                <input 
+                                    type="email" 
+                                    className="system-input"
+                                    placeholder="Correo electrónico"
+                                    value={email} 
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <input 
+                                    type="password" 
+                                    className="system-input"
+                                    placeholder="Contraseña"
+                                    value={password} 
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    required
+                                />
+                            </div>
+                            <button type="submit" className="btn-system btn-accent" style={{ width: '100%', marginTop: '0.5rem', padding: '14px' }}>
+                                {isRegistering ? 'Registrarme' : 'Entrar a tocar'}
+                            </button>
+                        </>
                     )}
-                    <div>
-                        <input 
-                            type="email" 
-                            className="system-input"
-                            placeholder="Correo electrónico"
-                            value={email} 
-                            onChange={(e) => setEmail(e.target.value)}
-                            required
-                        />
-                    </div>
-                    <div>
-                        <input 
-                            type="password" 
-                            className="system-input"
-                            placeholder="Contraseña"
-                            value={password} 
-                            onChange={(e) => setPassword(e.target.value)}
-                            required
-                        />
-                    </div>
-                    <button type="submit" className="btn-system btn-accent" style={{ width: '100%', marginTop: '0.5rem', padding: '14px' }}>
-                        {isRegistering ? 'Registrarme' : 'Entrar a tocar'}
-                    </button>
                 </form>
 
-                <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', textAlign: 'center', marginBottom: '1.5rem', cursor: 'pointer' }} onClick={() => { setIsRegistering(!isRegistering); setErrorMsg(''); setSuccessMsg(''); }}>
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', textAlign: 'center', marginBottom: '1.5rem', cursor: 'pointer' }} onClick={() => { setIsRegistering(!isRegistering); setIsVerifyingOtp(false); setIsVerifyingMfa(false); setErrorMsg(''); setSuccessMsg(''); }}>
                     <span style={{ fontWeight: '500' }}>
                         {isRegistering ? '¿Ya tienes cuenta? Inicia sesión' : '¿Nuevo por aquí? Regístrate'}
                     </span>

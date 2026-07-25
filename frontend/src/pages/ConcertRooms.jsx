@@ -2,6 +2,7 @@ import React, { useEffect, useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { socket } from '../utils/socket';
 import { AuthContext } from '../context/AuthContext';
+import PremiumUpgrade from '../components/PremiumUpgrade';
 
 const ConcertRooms = () => {
     const navigate = useNavigate();
@@ -20,6 +21,8 @@ const ConcertRooms = () => {
     // Formulario Unirse
     const [joinPassword, setJoinPassword] = useState('');
     const [errorMsg, setErrorMsg] = useState('');
+
+    const isFreemium = user?.tipo_suscripcion === 'freemium';
 
     useEffect(() => {
         if (!socket.connected) {
@@ -79,10 +82,23 @@ const ConcertRooms = () => {
         <div style={{ padding: '2rem', maxWidth: '1000px', margin: '0 auto', width: '100%' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
                 <button onClick={() => navigate('/dashboard')} className="btn-system">← Volver</button>
-                <button onClick={() => setShowCreateModal(true)} className="btn-system btn-accent">➕ Crear Sala</button>
+                <button 
+                    onClick={() => setShowCreateModal(true)} 
+                    className="btn-system btn-accent"
+                    disabled={isFreemium}
+                    style={isFreemium ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
+                >
+                    ➕ Crear Sala
+                </button>
             </div>
 
             <h1 style={{ marginBottom: '2rem' }}>Salas de Concierto Multijugador</h1>
+
+            {isFreemium && (
+                <div style={{ marginBottom: '2rem' }}>
+                    <PremiumUpgrade />
+                </div>
+            )}
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem' }}>
                 {rooms.length === 0 ? (
@@ -102,8 +118,8 @@ const ConcertRooms = () => {
                             <button 
                                 className="btn-system" 
                                 onClick={() => handleJoinClick(room)}
-                                disabled={room.userCount >= 4}
-                                style={room.userCount >= 4 ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
+                                disabled={room.userCount >= 4 || isFreemium}
+                                style={(room.userCount >= 4 || isFreemium) ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
                             >
                                 {room.userCount >= 4 ? 'Sala Llena' : 'Unirse a la sala'}
                             </button>

@@ -5,6 +5,7 @@ export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
+    const [token, setToken] = useState(localStorage.getItem('pianoflow_token') || null);
     const [loading, setLoading] = useState(true);
     const socketRef = useRef(null);
 
@@ -60,15 +61,17 @@ export const AuthProvider = ({ children }) => {
         });
     };
 
-    const login = (userData, token) => {
+    const login = (userData, tokenStr) => {
         setUser(userData);
+        setToken(tokenStr);
         localStorage.setItem('pianoflow_user', JSON.stringify(userData));
-        localStorage.setItem('pianoflow_token', token);
+        localStorage.setItem('pianoflow_token', tokenStr);
         setupSessionSocket(userData.id);
     };
 
     const logout = (fromSocket = false) => {
         setUser(null);
+        setToken(null);
         localStorage.removeItem('pianoflow_user');
         localStorage.removeItem('pianoflow_token');
         
@@ -79,7 +82,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     return (
-        <AuthContext.Provider value={{ user, login, logout, loading }}>
+        <AuthContext.Provider value={{ user, token, login, logout, loading }}>
             {children}
         </AuthContext.Provider>
     );
