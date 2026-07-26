@@ -12,6 +12,11 @@ const VersusEngine = ({ socket, roomState, song, user, opponent, isHost }) => {
     const [oppStats, setOppStats] = useState({ score: 0, combo: 0, hits: 0, misses: 0 });
     const [gameOver, setGameOver] = useState(false);
     const [countdown, setCountdown] = useState(3);
+    const [isLoaded, setIsLoaded] = useState(false);
+    
+    // Stats for rendering in the loop without closure issues
+    const myStatsRef = useRef({ score: 0, combo: 0, hits: 0, misses: 0, maxCombo: 0 });
+    const oppStatsRef = useRef({ score: 0, combo: 0, hits: 0, misses: 0 });
     
     const gameState = useRef({
         startTime: 0,
@@ -52,6 +57,7 @@ const VersusEngine = ({ socket, roomState, song, user, opponent, isHost }) => {
                     gameState.current.notes = allNotes;
                     gameState.current.isLoaded = true;
                     gameState.current.startTime = performance.now();
+                    setIsLoaded(true);
                 }
             } catch (err) {
                 console.error("Error cargando MIDI:", err);
@@ -65,12 +71,14 @@ const VersusEngine = ({ socket, roomState, song, user, opponent, isHost }) => {
     useEffect(() => {
         const handleOpponentScore = (data) => {
             if (data.userId === opponent?.id) {
-                setOppStats({
+                const newOppStats = {
                     score: data.score,
                     combo: data.combo,
                     hits: data.hits,
                     misses: data.misses
-                });
+                };
+                oppStatsRef.current = newOppStats;
+                setOppStats(newOppStats); // Keep for Game Over screen
             }
         };
 
@@ -118,17 +126,20 @@ const VersusEngine = ({ socket, roomState, song, user, opponent, isHost }) => {
             if (note.lane === laneIndex && !note.hit && !note.missed) {
                 if (Math.abs(note.time - state.currentTime) < hitWindow) {
                     note.hit = true;
-                    setMyStats(prev => {
-                        const newCombo = prev.combo + 1;
-                        const newScore = prev.score + (100 + (newCombo * 10));
-                        return {
-                            ...prev,
-                            hits: prev.hits + 1,
-                            combo: newCombo,
-                            maxCombo: Math.max(prev.maxCombo, newCombo),
-                            score: newScore
-                        };
-                    });
+                    const prev = myStatsRef.current;
+                    const newCombo = prev.combo + 1;
+                    const newScore = prev.score + (100 + (newCombo * 10));
+                    
+                    const newStats = {
+                        ...prev,
+                        hits: prev.hits + 1,
+                        combo: newCombo,
+                        maxCombo: Math.max(prev.maxCombo, newCombo),
+                        score: newScore
+                    };
+                    
+                    myStatsRef.current = newStats;
+                    setMyStats(newStats); // update react state for game over screen
                     break;
                 }
             }
@@ -170,11 +181,15 @@ const VersusEngine = ({ socket, roomState, song, user, opponent, isHost }) => {
                     // Si se pasó la zona de hit
                     if (timeDiff < -0.2) {
                         note.missed = true;
-                        setMyStats(prev => ({
-                            ...prev,
-                            misses: prev.misses + 1,
+                        
+                        const newStats = {
+                            ...myStatsRef.current,
+                            misses: myStatsRef.current.misses + 1,
                             combo: 0
-                        }));
+                        };
+                        
+                        myStatsRef.current = newStats;
+                        setMyStats(newStats);
                     }
                 }
             });
@@ -194,20 +209,17 @@ const VersusEngine = ({ socket, roomState, song, user, opponent, isHost }) => {
             const midX = canvas.width / 2;
             
             // Lado Izquierdo (Jugador)
-            drawLane(ctx, 0, midX, 'Tú', myStats, gameState.current.notes, gameState.current.activeKeys, true);
+            drawLane(ctx, 0, midX, 'Tú', myStatsRef.current, gameState.current.notes, gameState.current.activeKeys, true);
             
             // Lado Derecho (Oponente)
-            drawLane(ctx, midX, canvas.width, opponent ? opponent.nombre : 'Desconectado', oppStats, gameState.current.notes, [false,false,false,false], false);
+            drawLane(ctx, midX, canvas.width, opponent ? opponent.nombre : 'Desconectado', oppStatsRef.current, gameState.current.notes, [false,false,false,false], false);
 
             // Barra Tira y Afloja
-            drawTugOfWar(ctx, myStats.score, oppStats.score, canvas.width);
+            drawTugOfWar(ctx, myStatsRef.current.score, oppStatsRef.current.score, canvas.width);
 
             // Emitir socket update cada 500ms
             if (now - lastSocketUpdate.current > 500) {
-                setMyStats(currentStats => {
-                    socket.emit('versus_score_update', currentStats);
-                    return currentStats;
-                });
+                socket.emit('versus_score_update', myStatsRef.current);
                 lastSocketUpdate.current = now;
             }
 
@@ -216,7 +228,7 @@ const VersusEngine = ({ socket, roomState, song, user, opponent, isHost }) => {
 
         requestRef.current = requestAnimationFrame(update);
         return () => cancelAnimationFrame(requestRef.current);
-    }, [countdown, gameOver, myStats, oppStats, opponent, socket]);
+    }, [isLoaded, gameOver, opponent, socket]);
 
     const drawLane = (ctx, startX, endX, name, stats, notes, activeKeys, isLocal) => {
         const width = endX - startX;
