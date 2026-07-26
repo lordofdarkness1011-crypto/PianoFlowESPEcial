@@ -5,12 +5,14 @@ import { useNavigate } from 'react-router-dom';
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 const PremiumUpgrade = () => {
-    const { token } = useContext(AuthContext);
+    const { token, user } = useContext(AuthContext);
+    const isPremium = user?.tipo_suscripcion === 'premium' || user?.tipo_suscripcion === 'institucional';
+    
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
     const [giftCodeInput, setGiftCodeInput] = useState('');
-    const [tipoCompra, setTipoCompra] = useState('directo');
+    const [tipoCompra, setTipoCompra] = useState(isPremium ? 'regalo_1_mes' : 'directo');
     const navigate = useNavigate();
 
     const handlePaypal = async () => {
@@ -137,15 +139,17 @@ const PremiumUpgrade = () => {
                     <h3 style={{ color: 'var(--text-main)', marginBottom: '1rem' }}>Comprar / Regalar</h3>
                     
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '1.5rem' }}>
-                        <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
-                            <input 
-                                type="radio" 
-                                name="tipoCompra" 
-                                checked={tipoCompra === 'directo'}
-                                onChange={() => setTipoCompra('directo')}
-                            />
-                            <span>Mejora para mí (1 Mes) - <strong>$9.99</strong></span>
-                        </label>
+                        {!isPremium && (
+                            <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
+                                <input 
+                                    type="radio" 
+                                    name="tipoCompra" 
+                                    checked={tipoCompra === 'directo'}
+                                    onChange={() => setTipoCompra('directo')}
+                                />
+                                <span>Mejora para mí (1 Mes) - <strong>$9.99</strong></span>
+                            </label>
+                        )}
                         <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
                             <input 
                                 type="radio" 

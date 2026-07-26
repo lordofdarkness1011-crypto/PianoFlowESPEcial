@@ -1,6 +1,7 @@
 import React, { useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
+import PremiumUpgrade from '../components/PremiumUpgrade';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
@@ -111,7 +112,7 @@ const Profile = () => {
                         )}
                     </div>
                     {!isPremium && (
-                        <button className="btn-system btn-accent" onClick={() => navigate('/rooms')}>Mejorar a Premium</button>
+                        <button className="btn-system btn-accent" onClick={() => document.getElementById('premium-section').scrollIntoView({ behavior: 'smooth' })}>Mejorar a Premium</button>
                     )}
                 </div>
             </div>
@@ -163,6 +164,10 @@ const Profile = () => {
                         </div>
                     )}
                 </div>
+            </div>
+
+            <div id="premium-section" style={{ marginTop: '2rem' }}>
+                <PremiumUpgrade />
             </div>
         </div>
     );
