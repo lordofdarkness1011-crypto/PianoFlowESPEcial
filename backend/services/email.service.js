@@ -2,6 +2,7 @@ const { Resend } = require('resend');
 const { env } = require("../config/env");
 const { createVerificationEmail } = require("../templates/verification-email.template");
 const { createCustomMessageEmail } = require("../templates/custom-message.template");
+const { createGiftCodeEmail } = require("../templates/gift-code.template");
 
 // Inicializar el cliente de Resend
 const resend = new Resend(process.env.RESEND_API_KEY || env.RESEND_API_KEY);
@@ -60,9 +61,25 @@ async function sendCustomMessage({ to, subject, title, message, signature }) {
   });
 }
 
+async function sendGiftCodeEmail({ to, name, code, durationMonths }) {
+  const message = createGiftCodeEmail({
+    name,
+    code,
+    durationMonths
+  });
+
+  return sendEmail({
+    to,
+    subject: message.subject,
+    text: message.text,
+    html: message.html
+  });
+}
+
 module.exports = {
   verifyEmailConnection,
   sendEmail,
   sendVerificationEmail,
-  sendCustomMessage
+  sendCustomMessage,
+  sendGiftCodeEmail
 };

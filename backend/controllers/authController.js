@@ -78,7 +78,8 @@ const googleLogin = async (req, res, next) => {
             nombre: usuario.nombre,
             avatar_url: usuario.avatar_url,
             nivel_habilidad: usuario.nivel_habilidad,
-            tipo_suscripcion: usuario.tipo_suscripcion
+            tipo_suscripcion: usuario.tipo_suscripcion,
+            premium_expires_at: usuario.premium_expires_at
         };
 
         const token = jwt.sign(jwtPayload, process.env.JWT_SECRET, { expiresIn: '24h' });
@@ -113,7 +114,8 @@ const loginTradicional = async (req, res, next) => {
             nombre: usuario.nombre,
             avatar_url: usuario.avatar_url,
             nivel_habilidad: usuario.nivel_habilidad,
-            tipo_suscripcion: usuario.tipo_suscripcion
+            tipo_suscripcion: usuario.tipo_suscripcion,
+            premium_expires_at: usuario.premium_expires_at
         };
 
         const token = jwt.sign(jwtPayload, process.env.JWT_SECRET, { expiresIn: '24h' });
@@ -140,7 +142,8 @@ const verifyMfaLogin = async (req, res, next) => {
             nombre: usuario.nombre,
             avatar_url: usuario.avatar_url,
             nivel_habilidad: usuario.nivel_habilidad,
-            tipo_suscripcion: usuario.tipo_suscripcion
+            tipo_suscripcion: usuario.tipo_suscripcion,
+            premium_expires_at: usuario.premium_expires_at
         };
 
         const token = jwt.sign(jwtPayload, process.env.JWT_SECRET, { expiresIn: '24h' });

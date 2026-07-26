@@ -1,3 +1,9 @@
+-- Eliminación de tablas y tipos existentes (Reset)
+DROP TABLE IF EXISTS partidas CASCADE;
+DROP TABLE IF EXISTS usuarios CASCADE;
+DROP TYPE IF EXISTS nivel_habilidad_enum CASCADE;
+DROP TYPE IF EXISTS tipo_suscripcion_enum CASCADE;
+
 -- Creación de tipos ENUM para asegurar la consistencia de los datos
 CREATE TYPE nivel_habilidad_enum AS ENUM ('principiante', 'intermedio', 'invitado');
 CREATE TYPE tipo_suscripcion_enum AS ENUM ('freemium', 'premium', 'institucional');
@@ -21,7 +27,21 @@ CREATE TABLE IF NOT EXISTS usuarios (
     verification_attempts INTEGER DEFAULT 0,
     puntuacion_total INTEGER DEFAULT 0,
     creado_en TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    actualizado_en TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    actualizado_en TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    premium_expires_at TIMESTAMP WITH TIME ZONE
+);
+
+-- Tabla para almacenar los códigos de regalo
+CREATE TABLE IF NOT EXISTS codigos_regalo (
+    id SERIAL PRIMARY KEY,
+    codigo VARCHAR(12) UNIQUE NOT NULL,
+    duracion_meses INTEGER NOT NULL,
+    estado VARCHAR(20) DEFAULT 'no usado',
+    comprador_id INTEGER REFERENCES usuarios(id) ON DELETE SET NULL,
+    usuario_redencion_id INTEGER REFERENCES usuarios(id) ON DELETE SET NULL,
+    fecha_creacion TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    fecha_expiracion TIMESTAMP WITH TIME ZONE,
+    fecha_uso TIMESTAMP WITH TIME ZONE
 );
 
 -- Tabla auxiliar para guardar el historial de puntuaciones de las partidas 

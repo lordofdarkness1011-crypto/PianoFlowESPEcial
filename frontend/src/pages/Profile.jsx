@@ -104,6 +104,11 @@ const Profile = () => {
                         <p style={{ margin: '8px 0 0 0', fontSize: '0.9rem', color: 'var(--text-muted)' }}>
                             {isPremium ? 'Tienes acceso total a la nube y progreso guardado.' : 'Plan básico local. Tu progreso no se sincroniza en la nube.'}
                         </p>
+                        {isPremium && user.premium_expires_at && (
+                            <p style={{ margin: '4px 0 0 0', fontSize: '0.85rem', color: 'var(--text-main)', fontWeight: 'bold' }}>
+                                Válido hasta: {new Date(user.premium_expires_at).toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric' })}
+                            </p>
+                        )}
                     </div>
                     {!isPremium && (
                         <button className="btn-system btn-accent" onClick={() => navigate('/rooms')}>Mejorar a Premium</button>
