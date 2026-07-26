@@ -1,25 +1,33 @@
-const transporter = require("../config/mail.config");
+const { Resend } = require('resend');
 const { env } = require("../config/env");
-const {
-  createVerificationEmail
-} = require("../templates/verification-email.template");
-const {
-  createCustomMessageEmail
-} = require("../templates/custom-message.template");
+const { createVerificationEmail } = require("../templates/verification-email.template");
+const { createCustomMessageEmail } = require("../templates/custom-message.template");
+
+// Inicializar el cliente de Resend
+const resend = new Resend(process.env.RESEND_API_KEY || env.RESEND_API_KEY);
 
 async function verifyEmailConnection() {
-  return transporter.verify();
+  if (!process.env.RESEND_API_KEY && !env.RESEND_API_KEY) {
+    throw new Error("RESEND_API_KEY no está configurada");
+  }
+  return true;
 }
 
 async function sendEmail({ to, subject, text, html, attachments }) {
-  return transporter.sendMail({
-    from: `"Aplicaciones Distribuidas" <${env.EMAIL_USER}>`,
+  const result = await resend.emails.send({
+    from: 'PianoFlow <onboarding@resend.dev>', // Si configuras un dominio propio, cambias esto por 'PianoFlow <equipo@tudominio.com>'
     to,
     subject,
     text,
     html,
     attachments
   });
+
+  if (result.error) {
+    throw new Error(result.error.message);
+  }
+  
+  return result;
 }
 
 async function sendVerificationEmail({ name, email, code }) {
