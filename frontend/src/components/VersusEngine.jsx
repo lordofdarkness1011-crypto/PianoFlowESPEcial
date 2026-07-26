@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Midi } from '@tonejs/midi';
+import * as Tone from 'tone';
 
 const LANE_KEYS = ['d', 'f', 'j', 'k'];
 const COLORS = ['#ef4444', '#3b82f6', '#10b981', '#eab308'];
@@ -26,7 +27,19 @@ const VersusEngine = ({ socket, roomState, song, user, opponent, isHost }) => {
         isLoaded: false
     });
 
+    const synthRef = useRef(null);
     const lastSocketUpdate = useRef(0);
+
+    // Inicializar Sintetizador
+    useEffect(() => {
+        const synth = new Tone.PolySynth(Tone.Synth).toDestination();
+        synth.volume.value = -5; // Bajar un poco el volumen
+        synthRef.current = synth;
+        
+        return () => {
+            synth.dispose();
+        };
+    }, []);
 
     // Cargar MIDI y preparar notas
     useEffect(() => {
@@ -44,6 +57,7 @@ const VersusEngine = ({ socket, roomState, song, user, opponent, isHost }) => {
                             lane: note.midi % 4,
                             time: note.time,
                             duration: note.duration,
+                            name: note.name, // Necesario para Tone.js
                             hit: false,
                             missed: false,
                             y: -100 // posición inicial fuera de pantalla
@@ -126,6 +140,15 @@ const VersusEngine = ({ socket, roomState, song, user, opponent, isHost }) => {
             if (note.lane === laneIndex && !note.hit && !note.missed) {
                 if (Math.abs(note.time - state.currentTime) < hitWindow) {
                     note.hit = true;
+                    
+                    // Reproducir sonido de la nota
+                    if (synthRef.current) {
+                        try {
+                            if (Tone.context.state !== 'running') Tone.start();
+                            synthRef.current.triggerAttackRelease(note.name, "8n");
+                        } catch (e) { console.error(e); }
+                    }
+                    
                     const prev = myStatsRef.current;
                     const newCombo = prev.combo + 1;
                     const newScore = prev.score + (100 + (newCombo * 10));
@@ -205,14 +228,17 @@ const VersusEngine = ({ socket, roomState, song, user, opponent, isHost }) => {
             // Dibujar
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
-            // Dibujar Fondo Split Screen
-            const midX = canvas.width / 2;
+            // Dibujar Fondo Split Screen con separación
+            const canvasWidth = canvas.width;
+            const midX = canvasWidth / 2;
+            const gap = 40;
+            const boardWidth = (canvasWidth / 2) - gap;
             
             // Lado Izquierdo (Jugador)
-            drawLane(ctx, 0, midX, 'Tú', myStatsRef.current, gameState.current.notes, gameState.current.activeKeys, true);
+            drawLane(ctx, gap/2, (gap/2) + boardWidth, 'Tú', myStatsRef.current, gameState.current.notes, gameState.current.activeKeys, true);
             
             // Lado Derecho (Oponente)
-            drawLane(ctx, midX, canvas.width, opponent ? opponent.nombre : 'Desconectado', oppStatsRef.current, gameState.current.notes, [false,false,false,false], false);
+            drawLane(ctx, midX + (gap/2), midX + (gap/2) + boardWidth, opponent ? opponent.nombre : 'Desconectado', oppStatsRef.current, gameState.current.notes, [false,false,false,false], false);
 
             // Barra Tira y Afloja
             drawTugOfWar(ctx, myStatsRef.current.score, oppStatsRef.current.score, canvas.width);
@@ -239,15 +265,10 @@ const VersusEngine = ({ socket, roomState, song, user, opponent, isHost }) => {
         ctx.fillStyle = '#0f172a';
         ctx.fillRect(startX, 0, width, canvasRef.current.height);
 
-        // Línea divisoria central
-        if (isLocal) {
-            ctx.strokeStyle = '#334155';
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.moveTo(endX, 0);
-            ctx.lineTo(endX, canvasRef.current.height);
-            ctx.stroke();
-        }
+        // Borde del tablero
+        ctx.strokeStyle = '#334155';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(startX, 0, width, canvasRef.current.height);
 
         // Stats Overlay
         ctx.fillStyle = 'rgba(0,0,0,0.5)';
@@ -287,19 +308,20 @@ const VersusEngine = ({ socket, roomState, song, user, opponent, isHost }) => {
             }
         }
 
-        // Si no es local, no dibujamos notas (ya que no sincronizamos Y exacta del oponente para ahorrar red)
-        if (isLocal) {
-            notes.forEach(note => {
-                if (!note.hit && !note.missed && note.y > 0 && note.y < canvasRef.current.height) {
-                    const nx = startX + (note.lane * colWidth);
-                    ctx.fillStyle = COLORS[note.lane];
-                    // Redondear bordes
-                    ctx.beginPath();
-                    ctx.roundRect(nx + 5, note.y - 15, colWidth - 10, 30, 5);
-                    ctx.fill();
-                }
-            });
-        }
+        // Dibujamos las notas en ambos tableros
+        notes.forEach(note => {
+            // Para el jugador local, ocultamos las hits. Para el oponente, dejamos que caigan para efecto visual
+            if (!note.missed && note.y > 0 && note.y < canvasRef.current.height) {
+                if (isLocal && note.hit) return; // Si es el nuestro y la golpeamos, desaparece.
+                
+                const nx = startX + (note.lane * colWidth);
+                ctx.fillStyle = COLORS[note.lane];
+                // Redondear bordes
+                ctx.beginPath();
+                ctx.roundRect(nx + 5, note.y - 15, colWidth - 10, 30, 5);
+                ctx.fill();
+            }
+        });
     };
 
     const drawTugOfWar = (ctx, myScore, oppScore, totalWidth) => {
@@ -324,7 +346,28 @@ const VersusEngine = ({ socket, roomState, song, user, opponent, isHost }) => {
     };
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', background: '#020617', padding: '1rem', height: '100vh' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', background: '#020617', padding: '1rem', height: '100vh', position: 'relative' }}>
+            
+            {/* Botón de Retroceso en Juego */}
+            <button 
+                onClick={() => socket.emit('versus_back_to_lobby')}
+                style={{ 
+                    position: 'absolute', 
+                    top: '20px', 
+                    left: '20px', 
+                    background: 'rgba(239, 68, 68, 0.2)', 
+                    color: '#ef4444', 
+                    border: '1px solid #ef4444',
+                    padding: '8px 16px',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    zIndex: 50,
+                    fontWeight: 'bold'
+                }}
+            >
+                ← Abandonar Partida
+            </button>
+
             {countdown !== null && !gameOver && (
                 <div style={{ position: 'absolute', top: '40%', fontSize: '5rem', color: 'white', textShadow: '0 0 20px #3b82f6', zIndex: 10 }}>
                     {countdown > 0 ? countdown : '¡YA!'}
