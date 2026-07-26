@@ -93,7 +93,7 @@ router.post("/paypal/capture-order/:orderId", requireAuth, async (req, res) => {
                 await pool.query(
                     `UPDATE usuarios SET 
                         tipo_suscripcion = 'premium', 
-                        premium_expires_at = COALESCE(premium_expires_at, CURRENT_TIMESTAMP) + INTERVAL '1 month' 
+                        premium_expires_at = CASE WHEN premium_expires_at > CURRENT_TIMESTAMP THEN premium_expires_at ELSE CURRENT_TIMESTAMP END + INTERVAL '1 month' 
                      WHERE id = $1`,
                     [userId]
                 );
