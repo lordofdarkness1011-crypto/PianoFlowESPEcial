@@ -139,6 +139,46 @@ const PremiumUpgrade = () => {
         }
     };
 
+    const handlePayphone = async () => {
+        setLoading(true);
+        setError('');
+        try {
+            const res = await fetch(`${API_URL}/api/pagos/payphone/prepare`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ amount: tipoCompra.includes('anio') ? 9999 : 999 })
+            });
+            const data = await res.json();
+            
+            if (data.ok) {
+                window.open(data.paymentUrl, '_blank');
+                // Simular confirmación en esta demo
+                const confirmRes = await fetch(`${API_URL}/api/pagos/payphone/confirm`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (confirmRes.ok) {
+                    if (tipoCompra === 'directo') {
+                        setSuccess('¡Pago Exitoso! Disfruta tu cuenta Premium.');
+                    } else {
+                        setSuccess('¡Compra Exitosa! El código de regalo ha sido enviado a tu correo.');
+                    }
+                    await refreshSession();
+                }
+            } else {
+                setError(data.message);
+            }
+        } catch (err) {
+            setError('Hubo un error con PayPhone.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
         <div className="system-panel" style={{ textAlign: 'center', background: 'rgba(255, 215, 0, 0.1)', borderColor: 'gold' }}>
             <h2 style={{ color: 'gold', marginBottom: '1rem' }}>Suscripción Premium 🎹</h2>
@@ -192,6 +232,16 @@ const PremiumUpgrade = () => {
                     >
                         {loading ? 'Procesando...' : 'Pagar con PayPal'}
                     </button>
+
+                    <button 
+                        className="btn-system" 
+                        style={{ background: '#FF4500', borderColor: '#FF4500', color: 'white', width: '100%', marginTop: '10px' }}
+                        onClick={handlePayphone}
+                        disabled={loading}
+                    >
+                        {loading ? 'Procesando...' : 'Pagar con PayPhone'}
+                    </button>
+
                     {tipoCompra.includes('regalo') && (
                         <p style={{ fontSize: '0.8rem', color: '#94a3b8', marginTop: '10px' }}>
                             El código será enviado a tu correo registrado.
