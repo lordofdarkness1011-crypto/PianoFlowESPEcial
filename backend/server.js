@@ -40,7 +40,9 @@ app.use('/api', apiRoutes);
 app.use(errorHandler);
 
 const socketController = require('./controllers/socketController');
+const versusController = require('./controllers/versusController');
 socketController(io);
+versusController(io);
 
 // Arrancar el servidor
 const PORT = process.env.PORT || 3000;

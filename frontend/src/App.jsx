@@ -16,6 +16,8 @@ import ConcertRoom from './pages/ConcertRoom';
 import SongList from './pages/SongList';
 import Gameplay from './pages/Gameplay';
 import Results from './pages/Results';
+import VersusLobby from './pages/VersusLobby';
+import VersusRoom from './pages/VersusRoom';
 import NotFound from './pages/NotFound';
 import Footer from './components/Footer';
 import './App.css';
@@ -93,6 +95,19 @@ function App() {
                                   <Results />
                               </ProtectedRoute>
                           } />
+
+                          <Route path="/versus" element={
+                              <ProtectedRoute>
+                                  <VersusLobby />
+                              </ProtectedRoute>
+                          } />
+
+                          <Route path="/versus/:roomId" element={
+                              <ProtectedRoute>
+                                  <VersusRoom />
+                              </ProtectedRoute>
+                          } />
+
                           <Route path="*" element={<NotFound />} />
                       </Routes>
                   </div>

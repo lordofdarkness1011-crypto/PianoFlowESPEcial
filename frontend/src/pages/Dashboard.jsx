@@ -123,6 +123,22 @@ const Dashboard = () => {
                         Multijugador
                     </button>
                 </div>
+
+                <div className="system-panel" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'linear-gradient(135deg, rgba(234, 179, 8, 0.1), rgba(202, 138, 4, 0.1))', border: '1px solid rgba(234, 179, 8, 0.3)' }}>
+                    <div>
+                        <h2 style={{ margin: '0 0 8px 0', fontSize: '1.2rem', color: 'var(--text-main)' }}>
+                            Modo Versus {user.tipo_suscripcion !== 'premium' && '👑'}
+                        </h2>
+                        <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-muted)' }}>Duelo rítmico (Experimental).</p>
+                    </div>
+                    <button 
+                        className="btn-system" 
+                        onClick={() => navigate('/versus')}
+                        style={{ background: '#eab308', color: '#0f172a', fontWeight: 'bold', padding: '10px 20px', borderRadius: '50px' }}
+                    >
+                        Competir
+                    </button>
+                </div>
             </div>
             
         </div>
