@@ -15,7 +15,7 @@ async function verifyEmailConnection() {
 
 async function sendEmail({ to, subject, text, html, attachments }) {
   const result = await resend.emails.send({
-    from: 'PianoFlow <onboarding@resend.dev>', // Si configuras un dominio propio, cambias esto por 'PianoFlow <equipo@tudominio.com>'
+    from: 'PianoFlow <equipo@pianoflows.shop>', // Remitente oficial de la aplicación
     to,
     subject,
     text,
