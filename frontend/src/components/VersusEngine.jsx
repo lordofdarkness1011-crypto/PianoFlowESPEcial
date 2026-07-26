@@ -231,7 +231,7 @@ const VersusEngine = ({ socket, roomState, song, user, opponent, isHost }) => {
             // Dibujar Fondo Split Screen con separación
             const canvasWidth = canvas.width;
             const midX = canvasWidth / 2;
-            const gap = 40;
+            const gap = 100; // Aumentar el gap para que sea súper evidente
             const boardWidth = (canvasWidth / 2) - gap;
             
             // Lado Izquierdo (Jugador)
@@ -417,7 +417,7 @@ const VersusEngine = ({ socket, roomState, song, user, opponent, isHost }) => {
                     border: '2px solid #1e293b', 
                     borderRadius: '8px', 
                     boxShadow: '0 10px 30px rgba(0,0,0,0.5)',
-                    background: '#0f172a'
+                    background: 'transparent'
                 }}
             />
             
