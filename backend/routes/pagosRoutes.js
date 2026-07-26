@@ -67,6 +67,9 @@ router.post("/paypal/capture-order/:orderId", requireAuth, async (req, res) => {
                 meses = 12;
             }
 
+            const userRes = await pool.query("SELECT email, nombre FROM usuarios WHERE id = $1", [userId]);
+            const userDb = userRes.rows[0];
+
             if (tipoCompra === 'regalo_1_mes' || tipoCompra === 'regalo_1_anio') {
                 // Generar código de regalo
                 const code = crypto.randomBytes(6).toString('hex').toUpperCase(); // 12 caracteres
@@ -78,9 +81,6 @@ router.post("/paypal/capture-order/:orderId", requireAuth, async (req, res) => {
                 );
 
                 // Enviar código por correo
-                const userRes = await pool.query("SELECT email, nombre FROM usuarios WHERE id = $1", [userId]);
-                const userDb = userRes.rows[0];
-                
                 await emailService.sendGiftCodeEmail({
                     to: userDb.email,
                     name: userDb.nombre,
@@ -98,6 +98,21 @@ router.post("/paypal/capture-order/:orderId", requireAuth, async (req, res) => {
                     [userId]
                 );
             }
+            
+            // Enviar recibo de pago para todos
+            const itemDesc = tipoCompra === 'regalo_1_anio' ? 'Código de Regalo Premium PianoFlow (1 Año)' : 
+                             tipoCompra === 'regalo_1_mes' ? 'Código de Regalo Premium PianoFlow (1 Mes)' : 
+                             'Suscripción Premium PianoFlow (1 Mes)';
+                             
+            await emailService.sendReceiptEmail({
+                to: userDb.email,
+                name: userDb.nombre,
+                transactionId: capture.id,
+                items: [{ description: itemDesc, price: capturedAmount }],
+                total: capturedAmount,
+                date: new Date().toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+            });
+
         }
 
         res.json(capture);
