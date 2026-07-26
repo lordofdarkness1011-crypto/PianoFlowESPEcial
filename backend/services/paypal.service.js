@@ -37,7 +37,12 @@ async function createPaypalOrder(orderData = {}) {
                 },
                 description: description.substring(0, 127)
             }
-        ]
+        ],
+        application_context: {
+            return_url: "https://pianoflows.netlify.app/dashboard",
+            cancel_url: "https://pianoflows.netlify.app/dashboard",
+            user_action: "PAY_NOW"
+        }
     };
 
     const response = await axios.post(
