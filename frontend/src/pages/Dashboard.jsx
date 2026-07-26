@@ -110,7 +110,9 @@ const Dashboard = () => {
 
                 <div className="system-panel" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(124, 58, 237, 0.1))', border: '1px solid rgba(139, 92, 246, 0.3)' }}>
                     <div>
-                        <h2 style={{ margin: '0 0 8px 0', fontSize: '1.2rem', color: 'var(--text-main)' }}>Salas de Concierto 👑</h2>
+                        <h2 style={{ margin: '0 0 8px 0', fontSize: '1.2rem', color: 'var(--text-main)' }}>
+                            Salas de Concierto {user.tipo_suscripcion !== 'premium' && '👑'}
+                        </h2>
                         <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-muted)' }}>Toca con amigos en tiempo real.</p>
                     </div>
                     <button 
