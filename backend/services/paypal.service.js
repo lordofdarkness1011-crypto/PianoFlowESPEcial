@@ -39,8 +39,8 @@ async function createPaypalOrder(orderData = {}) {
             }
         ],
         application_context: {
-            return_url: "https://pianoflows.netlify.app/dashboard",
-            cancel_url: "https://pianoflows.netlify.app/dashboard",
+            return_url: "https://pianoflowbackend.onrender.com/api/pagos/paypal/success",
+            cancel_url: "https://pianoflowbackend.onrender.com/api/pagos/paypal/success",
             user_action: "PAY_NOW"
         }
     };

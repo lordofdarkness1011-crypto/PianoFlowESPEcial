@@ -29,26 +29,46 @@ const PremiumUpgrade = () => {
             if (order.id && order.links) {
                 const approveLink = order.links.find(link => link.rel === 'approve');
                 if (approveLink) {
-                    window.open(approveLink.href, '_blank');
+                    const width = 500;
+                    const height = 700;
+                    const left = window.screen.width / 2 - width / 2;
+                    const top = window.screen.height / 2 - height / 2;
+                    
+                    const popup = window.open(
+                        approveLink.href, 
+                        'paypal', 
+                        `width=${width},height=${height},left=${left},top=${top}`
+                    );
+                    
                     setPaypalOrderId(order.id);
+                    
+                    // Detectar cuándo se cierra el popup para confirmar automáticamente
+                    const timer = setInterval(() => {
+                        if (popup && popup.closed) {
+                            clearInterval(timer);
+                            handleConfirmPaypal(order.id); // Capturar automáticamente
+                        }
+                    }, 1000);
+
                 } else {
                     setError('No se encontró el enlace de aprobación de PayPal.');
+                    setLoading(false);
                 }
             } else {
                 setError('Hubo un error al crear la orden.');
+                setLoading(false);
             }
         } catch (err) {
             setError('Hubo un error de conexión con PayPal.');
-        } finally {
             setLoading(false);
         }
     };
 
-    const handleConfirmPaypal = async () => {
+    const handleConfirmPaypal = async (orderId) => {
         setLoading(true);
         setError('');
         try {
-            const captureRes = await fetch(`${API_URL}/api/pagos/paypal/capture-order/${paypalOrderId}`, {
+            const captureRes = await fetch(`${API_URL}/api/pagos/paypal/capture-order/${orderId}`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`
@@ -137,19 +157,6 @@ const PremiumUpgrade = () => {
                         {loading ? 'Procesando...' : 'Pagar con PayPhone'}
                     </button>
                 </div>
-
-                {paypalOrderId && (
-                    <div style={{ marginTop: '1rem', padding: '1rem', border: '1px dashed #003087', borderRadius: '8px', background: 'rgba(0, 48, 135, 0.1)' }}>
-                        <p style={{ marginBottom: '10px' }}>Por favor aprueba el pago en la ventana emergente de PayPal.</p>
-                        <button 
-                            className="btn-system btn-accent" 
-                            onClick={handleConfirmPaypal}
-                            disabled={loading}
-                        >
-                            {loading ? 'Confirmando...' : 'Ya aprobé el pago, Confirmar 🚀'}
-                        </button>
-                    </div>
-                )}
             </div>
             {success && <p style={{ marginTop: '1rem', fontSize: '0.85rem' }}>Debes iniciar sesión nuevamente para actualizar tu rol.</p>}
         </div>

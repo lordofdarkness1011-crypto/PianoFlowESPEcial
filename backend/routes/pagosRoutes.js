@@ -19,6 +19,11 @@ router.get("/paypal/config", requireAuth, (req, res) => {
     res.json({ clientId: process.env.PAYPAL_CLIENT_ID });
 });
 
+// Endpoint para que la ventana emergente se cierre sola tras pagar
+router.get("/paypal/success", (req, res) => {
+    res.send("<script>window.close();</script>");
+});
+
 router.post("/paypal/create-order", requireAuth, async (req, res) => {
     try {
         const orderData = req.body;
