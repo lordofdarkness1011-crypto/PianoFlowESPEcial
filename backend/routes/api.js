@@ -1,9 +1,9 @@
 const express = require('express');
 const { 
     googleLogin, loginTradicional, verifyMfaLogin, registroTradicional, 
-    verifyAccount, resendCode, setupMfa, confirmMfa, getMfaStatus 
+    verifyAccount, resendCode, setupMfa, confirmMfa, getMfaStatus, getMe
 } = require('../controllers/authController');
-const { requirePremiumAuth } = require('../middlewares/jwtMiddleware');
+const { requirePremiumAuth, requireAuth } = require('../middlewares/jwtMiddleware');
 const { guardarPartidaConTransaccion } = require('../services/partidaService');
 const pagosRoutes = require('./pagosRoutes');
 const queueRepo = require('../repositories/queue.repository');
@@ -22,6 +22,7 @@ router.post('/auth/login/verify', verifyMfaLogin);
 router.post('/auth/register', registroTradicional);
 router.post('/auth/verify', verifyAccount);
 router.post('/auth/resend', resendCode);
+router.get('/auth/me', requireAuth, getMe);
 
 // Rutas MFA
 router.post('/mfa/setup', setupMfa);

@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 const PremiumUpgrade = () => {
-    const { token, user } = useContext(AuthContext);
+    const { token, user, login } = useContext(AuthContext);
     const isPremium = user?.tipo_suscripcion === 'premium' || user?.tipo_suscripcion === 'institucional';
     
     const [loading, setLoading] = useState(false);
@@ -14,6 +14,20 @@ const PremiumUpgrade = () => {
     const [giftCodeInput, setGiftCodeInput] = useState('');
     const [tipoCompra, setTipoCompra] = useState(isPremium ? 'regalo_1_mes' : 'directo');
     const navigate = useNavigate();
+
+    const refreshSession = async () => {
+        try {
+            const res = await fetch(`${API_URL}/api/auth/me`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await res.json();
+            if (data.success) {
+                login(data.user, data.token);
+            }
+        } catch (err) {
+            console.error('Error refreshing session:', err);
+        }
+    };
 
     const handlePaypal = async () => {
         setLoading(true);
@@ -80,7 +94,7 @@ const PremiumUpgrade = () => {
             if (captureRes.ok) {
                 if (tipo === 'directo') {
                     setSuccess('¡Pago Exitoso! Disfruta tu cuenta Premium.');
-                    setTimeout(() => navigate('/login'), 3000);
+                    await refreshSession();
                 } else {
                     setSuccess('¡Compra Exitosa! El código de regalo ha sido enviado a tu correo.');
                 }
@@ -114,7 +128,7 @@ const PremiumUpgrade = () => {
             const data = await res.json();
             if (res.ok) {
                 setSuccess('¡Código canjeado con éxito! Disfruta de tu Premium.');
-                setTimeout(() => navigate('/login'), 3000);
+                await refreshSession();
             } else {
                 setError(data.message || 'Error al canjear el código.');
             }
@@ -222,8 +236,6 @@ const PremiumUpgrade = () => {
                     </button>
                 </div>
             </div>
-
-            {success && tipoCompra === 'directo' && <p style={{ marginTop: '1rem', fontSize: '0.85rem' }}>Debes iniciar sesión nuevamente para actualizar tu rol.</p>}
         </div>
     );
 };

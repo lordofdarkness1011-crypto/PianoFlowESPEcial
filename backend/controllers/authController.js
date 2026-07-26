@@ -218,6 +218,37 @@ const getMfaStatus = async (req, res, next) => {
     }
 };
 
+// -------------------------------------------------------------
+// GET CURRENT USER (ME)
+// -------------------------------------------------------------
+const getMe = async (req, res, next) => {
+    try {
+        const userId = req.user.id;
+        const query = 'SELECT * FROM usuarios WHERE id = $1';
+        const result = await pool.query(query, [userId]);
+        const usuario = result.rows[0];
+
+        if (!usuario) {
+            return res.status(404).json({ success: false, message: 'Usuario no encontrado' });
+        }
+
+        const jwtPayload = {
+            id: usuario.id,
+            email: usuario.email,
+            nombre: usuario.nombre,
+            avatar_url: usuario.avatar_url,
+            nivel_habilidad: usuario.nivel_habilidad,
+            tipo_suscripcion: usuario.tipo_suscripcion,
+            premium_expires_at: usuario.premium_expires_at
+        };
+
+        const token = jwt.sign(jwtPayload, process.env.JWT_SECRET, { expiresIn: '24h' });
+        res.status(200).json({ success: true, token, user: jwtPayload });
+    } catch (error) {
+        next(error);
+    }
+};
+
 module.exports = {
     googleLogin,
     loginTradicional,
@@ -227,5 +258,6 @@ module.exports = {
     resendCode,
     setupMfa,
     confirmMfa,
-    getMfaStatus
+    getMfaStatus,
+    getMe
 };
