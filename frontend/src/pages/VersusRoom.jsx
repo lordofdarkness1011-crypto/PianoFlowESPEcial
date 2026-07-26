@@ -6,11 +6,11 @@ import VersusEngine from '../components/VersusEngine';
 
 const API_URL = import.meta.env.VITE_API_URL || `http://${window.location.hostname}:3000`;
 
-// Mock de canciones, similar al original
+// Mock de canciones, usando los midis reales existentes en el sistema
 const availableSongs = [
-    { id: 1, title: 'Twinkle Twinkle Little Star', artist: 'Traditional', difficulty: 'Fácil', file: '/midi/twinkle.mid' },
-    { id: 2, title: 'Für Elise', artist: 'Beethoven', difficulty: 'Medio', file: '/midi/fur_elise.mid' },
-    { id: 3, title: 'Turkish March', artist: 'Mozart', difficulty: 'Difícil', file: '/midi/turkish.mid' }
+    { id: 1, title: 'The Unforgiven', artist: 'Metallica', difficulty: 'Normal', file: '/songs/theunforgiven.mid' },
+    { id: 2, title: 'Escala 3 Octavas', artist: 'Práctica', difficulty: 'Fácil', file: '/songs/escala_3oct.mid' },
+    { id: 3, title: 'Rango 5 Octavas', artist: 'Práctica', difficulty: 'Difícil', file: '/songs/rango_5oct.mid' }
 ];
 
 const VersusRoom = () => {
