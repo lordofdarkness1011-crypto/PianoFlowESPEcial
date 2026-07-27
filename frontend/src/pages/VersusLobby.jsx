@@ -70,14 +70,33 @@ const VersusLobby = () => {
 
     return (
         <div className="system-panel" style={{ marginTop: '2rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', borderBottom: '1px solid #1e293b', paddingBottom: '1rem' }}>
-                <div>
-                    <h2 style={{ color: '#3b82f6', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        ⚔️ Versus Mode <span style={{ fontSize: '0.6em', background: '#eab308', color: '#000', padding: '2px 6px', borderRadius: '4px' }}>EXPERIMENTAL</span>
-                    </h2>
-                    <p style={{ color: '#94a3b8', fontSize: '0.9rem', marginTop: '0.5rem' }}>
-                        Enfréntate a otros pianistas en tiempo real (Clon Osu!mania - 4 Teclas D,F,J,K).
-                    </p>
+            <div style={{ marginBottom: '1.5rem' }}>
+                <button 
+                    className="btn-system" 
+                    onClick={() => navigate('/dashboard')}
+                    style={{ 
+                        background: 'transparent', 
+                        border: '1px solid #334155', 
+                        color: '#94a3b8',
+                        padding: '6px 12px',
+                        fontSize: '0.9rem',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        marginBottom: '1rem'
+                    }}
+                >
+                    ← Volver al Dashboard
+                </button>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #1e293b', paddingBottom: '1rem' }}>
+                    <div>
+                        <h2 style={{ color: '#3b82f6', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            ⚔️ Versus Mode <span style={{ fontSize: '0.6em', background: '#eab308', color: '#000', padding: '2px 6px', borderRadius: '4px' }}>EXPERIMENTAL</span>
+                        </h2>
+                        <p style={{ color: '#94a3b8', fontSize: '0.9rem', marginTop: '0.5rem' }}>
+                            Enfréntate a otros pianistas en tiempo real (Clon Osu!mania - 4 Teclas D,F,J,K).
+                        </p>
+                    </div>
                 </div>
             </div>
 
