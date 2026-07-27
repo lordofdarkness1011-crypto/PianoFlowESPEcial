@@ -195,11 +195,12 @@ const VersusEngine = ({ socket, roomState, song, user, opponent, isHost }) => {
             // Actualizar notas y chequear Misses
             let activeNotesLeft = 0;
             gameState.current.notes.forEach(note => {
+                // Calcular posición Y siempre para que sigan cayendo en el tablero del oponente
+                const timeDiff = note.time - currentTime;
+                note.y = HIT_Y - (timeDiff * NOTE_SPEED);
+
                 if (!note.hit && !note.missed) {
                     activeNotesLeft++;
-                    // Calcular posición Y
-                    const timeDiff = note.time - currentTime;
-                    note.y = HIT_Y - (timeDiff * NOTE_SPEED);
 
                     // Si se pasó la zona de hit
                     if (timeDiff < -0.2) {
