@@ -105,8 +105,14 @@ const VersusEngine = ({ socket, roomState, song, user, opponent, isHost }) => {
 
     // Input del teclado
     useEffect(() => {
-        const handleKeyDown = (e) => {
+        const handleKeyDown = async (e) => {
             if (gameOver) return;
+            
+            // Iniciar AudioContext en la primera interacción del usuario
+            if (Tone.context.state !== 'running') {
+                await Tone.start();
+            }
+
             const keyIndex = LANE_KEYS.indexOf(e.key.toLowerCase());
             if (keyIndex !== -1 && !gameState.current.activeKeys[keyIndex]) {
                 gameState.current.activeKeys[keyIndex] = true;
@@ -133,7 +139,7 @@ const VersusEngine = ({ socket, roomState, song, user, opponent, isHost }) => {
         const state = gameState.current;
         if (state.currentTime < 0) return;
 
-        const hitWindow = 0.15; // 150ms
+        const hitWindow = 0.20; // 200ms (Aumentado para mejor jugabilidad)
 
         for (let i = 0; i < state.notes.length; i++) {
             const note = state.notes[i];
@@ -141,12 +147,11 @@ const VersusEngine = ({ socket, roomState, song, user, opponent, isHost }) => {
                 if (Math.abs(note.time - state.currentTime) < hitWindow) {
                     note.hit = true;
                     
-                    // Reproducir sonido de la nota
-                    if (synthRef.current) {
+                    // Reproducir sonido de la nota de forma asíncrona sin bloquear el hilo
+                    if (synthRef.current && Tone.context.state === 'running') {
                         try {
-                            if (Tone.context.state !== 'running') Tone.start();
-                            synthRef.current.triggerAttackRelease(note.name, "8n");
-                        } catch (e) { console.error(e); }
+                            synthRef.current.triggerAttackRelease(note.name, "8n", Tone.now());
+                        } catch (e) {}
                     }
                     
                     const prev = myStatsRef.current;
