@@ -18,6 +18,7 @@ CREATE TABLE IF NOT EXISTS usuarios (
     avatar_url TEXT,
     nivel_habilidad nivel_habilidad_enum NOT NULL DEFAULT 'invitado',
     tipo_suscripcion tipo_suscripcion_enum NOT NULL DEFAULT 'freemium',
+    rol VARCHAR(20) DEFAULT 'user',
     status VARCHAR(20) DEFAULT 'ACTIVE',
     mfa_enabled BOOLEAN DEFAULT FALSE,
     mfa_secret TEXT,
@@ -74,9 +75,10 @@ EXECUTE FUNCTION actualizar_timestamp();
 -- Datos de prueba iniciales (Semillas)
 -- =========================================================================
 
-INSERT INTO usuarios (google_id, email, nombre, nivel_habilidad, tipo_suscripcion, puntuacion_total)
+INSERT INTO usuarios (google_id, email, password_hash, nombre, nivel_habilidad, tipo_suscripcion, rol, puntuacion_total)
 VALUES 
-    ('google-demo-1', 'freemium@pianoflow.com', 'Usuario Freemium', 'principiante', 'freemium', 150),
-    ('google-demo-2', 'premium@pianoflow.com', 'Usuario Premium', 'intermedio', 'premium', 1500),
-    ('google-demo-3', 'institucional@pianoflow.com', 'Usuario Institucional', 'intermedio', 'institucional', 2000)
+    ('google-demo-1', 'freemium@pianoflow.com', NULL, 'Usuario Freemium', 'principiante', 'freemium', 'user', 150),
+    ('google-demo-2', 'premium@pianoflow.com', NULL, 'Usuario Premium', 'intermedio', 'premium', 'user', 1500),
+    (NULL, 'mamolina26@espe.edu.ec', '$2b$10$ptakTgp.tQrFgjVf47KSnuj6AcaCji4oUqTIv/0/MylYiMAXpEs2y', 'Cuenta Maestra', 'intermedio', 'premium', 'admin', 9999)
 ON CONFLICT (email) DO NOTHING;
+

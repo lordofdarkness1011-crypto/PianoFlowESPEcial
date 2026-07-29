@@ -1,14 +1,20 @@
 const express = require('express');
 const { 
     googleLogin, loginTradicional, verifyMfaLogin, registroTradicional, 
-    verifyAccount, resendCode, setupMfa, confirmMfa, getMfaStatus, getMe
+    verifyAccount, resendCode, setupMfa, confirmMfa, getMfaStatus, getMe, uploadAvatar
 } = require('../controllers/authController');
 const { requirePremiumAuth, requireAuth } = require('../middlewares/jwtMiddleware');
+const multer = require('multer');
 const { guardarPartidaConTransaccion } = require('../services/partidaService');
 const pagosRoutes = require('./pagosRoutes');
 const queueRepo = require('../repositories/queue.repository');
 
+const queueRepo = require('../repositories/queue.repository');
+
 const router = express.Router();
+
+// Configuración de Multer para almacenar el archivo en memoria (Buffer)
+const upload = multer({ storage: multer.memoryStorage() });
 
 // Endpoint de prueba de la cola (Solo para desarrollo/debug)
 router.get('/queue', (req, res) => {
@@ -23,6 +29,7 @@ router.post('/auth/register', registroTradicional);
 router.post('/auth/verify', verifyAccount);
 router.post('/auth/resend', resendCode);
 router.get('/auth/me', requireAuth, getMe);
+router.post('/auth/avatar', requireAuth, upload.single('avatar'), uploadAvatar);
 
 // Rutas MFA
 router.post('/mfa/setup', setupMfa);

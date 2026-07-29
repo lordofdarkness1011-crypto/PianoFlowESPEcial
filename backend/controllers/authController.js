@@ -79,6 +79,7 @@ const googleLogin = async (req, res, next) => {
             avatar_url: usuario.avatar_url,
             nivel_habilidad: usuario.nivel_habilidad,
             tipo_suscripcion: usuario.tipo_suscripcion,
+            rol: usuario.rol,
             premium_expires_at: usuario.premium_expires_at
         };
 
@@ -115,6 +116,7 @@ const loginTradicional = async (req, res, next) => {
             avatar_url: usuario.avatar_url,
             nivel_habilidad: usuario.nivel_habilidad,
             tipo_suscripcion: usuario.tipo_suscripcion,
+            rol: usuario.rol,
             premium_expires_at: usuario.premium_expires_at
         };
 
@@ -143,6 +145,7 @@ const verifyMfaLogin = async (req, res, next) => {
             avatar_url: usuario.avatar_url,
             nivel_habilidad: usuario.nivel_habilidad,
             tipo_suscripcion: usuario.tipo_suscripcion,
+            rol: usuario.rol,
             premium_expires_at: usuario.premium_expires_at
         };
 
@@ -239,12 +242,55 @@ const getMe = async (req, res, next) => {
             avatar_url: usuario.avatar_url,
             nivel_habilidad: usuario.nivel_habilidad,
             tipo_suscripcion: usuario.tipo_suscripcion,
+            rol: usuario.rol,
             premium_expires_at: usuario.premium_expires_at
         };
 
         const token = jwt.sign(jwtPayload, process.env.JWT_SECRET, { expiresIn: '24h' });
         res.status(200).json({ success: true, token, user: jwtPayload });
     } catch (error) {
+        next(error);
+    }
+};
+
+// -------------------------------------------------------------
+// UPLOAD AVATAR
+// -------------------------------------------------------------
+const uploadAvatar = async (req, res, next) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ success: false, message: 'No se envió ninguna imagen' });
+        }
+
+        const cloudinaryService = require('../services/cloudinary.service');
+        const userId = req.user.id;
+
+        // Subir buffer a Cloudinary
+        const uploadResult = await cloudinaryService.uploadImage(req.file.buffer, 'pianoflow/avatars');
+        
+        // Actualizar URL en la BD
+        const newAvatarUrl = uploadResult.secure_url;
+        const updateQuery = 'UPDATE usuarios SET avatar_url = $1 WHERE id = $2 RETURNING *';
+        const updateRes = await pool.query(updateQuery, [newAvatarUrl, userId]);
+        const usuario = updateRes.rows[0];
+
+        // Generar nuevo token con el avatar actualizado
+        const jwtPayload = {
+            id: usuario.id,
+            email: usuario.email,
+            nombre: usuario.nombre,
+            avatar_url: usuario.avatar_url,
+            nivel_habilidad: usuario.nivel_habilidad,
+            tipo_suscripcion: usuario.tipo_suscripcion,
+            rol: usuario.rol,
+            premium_expires_at: usuario.premium_expires_at
+        };
+        const token = jwt.sign(jwtPayload, process.env.JWT_SECRET, { expiresIn: '24h' });
+
+        logger.info(`Avatar actualizado exitosamente para el usuario ID: ${userId}`);
+        res.status(200).json({ success: true, token, user: jwtPayload, message: 'Avatar actualizado' });
+    } catch (error) {
+        logger.error(`Error en uploadAvatar: ${error.message}`);
         next(error);
     }
 };
@@ -259,5 +305,6 @@ module.exports = {
     setupMfa,
     confirmMfa,
     getMfaStatus,
-    getMe
+    getMe,
+    uploadAvatar
 };

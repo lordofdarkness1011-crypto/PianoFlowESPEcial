@@ -5,6 +5,7 @@ const http = require('http');
 const { Server } = require('socket.io');
 
 const apiRoutes = require('./routes/api');
+const adminRoutes = require('./routes/adminRoutes');
 const logger = require('./utils/logger');
 const errorHandler = require('./middlewares/errorHandler');
 const worker = require('./worker');
@@ -35,6 +36,7 @@ app.use((req, res, next) => {
 
 // Rutas API REST
 app.use('/api', apiRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Manejador de errores centralizado
 app.use(errorHandler);

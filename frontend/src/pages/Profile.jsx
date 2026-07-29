@@ -2,6 +2,7 @@ import React, { useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import PremiumUpgrade from '../components/PremiumUpgrade';
+import AdminPanel from '../components/AdminPanel';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
@@ -14,7 +15,10 @@ const Profile = () => {
     const [mfaCode, setMfaCode] = useState('');
     const [mfaError, setMfaError] = useState('');
     const [mfaSuccess, setMfaSuccess] = useState('');
+    const [uploadingAvatar, setUploadingAvatar] = useState(false);
     
+    // AuthContext needs login to update the token/user globally
+    const { login } = useContext(AuthContext);
     useEffect(() => {
         if (user && user.email) {
             fetch(`${API_URL}/api/mfa/status/${user.email}`)
@@ -70,6 +74,39 @@ const Profile = () => {
         }
     };
 
+    const handleAvatarChange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append('avatar', file);
+
+        setUploadingAvatar(true);
+        try {
+            const res = await fetch(`${API_URL}/api/auth/avatar`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
+                body: formData
+            });
+            const data = await res.json();
+            if (data.success) {
+                // Update global auth context
+                if (login) {
+                    login(data.user, data.token);
+                }
+            } else {
+                alert(data.message || 'Error al subir la imagen');
+            }
+        } catch (error) {
+            console.error('Error uploading avatar:', error);
+            alert('Hubo un error al subir la imagen');
+        } finally {
+            setUploadingAvatar(false);
+        }
+    };
+
     if (!user) return null;
 
     const isPremium = user.tipo_suscripcion === 'premium' || user.tipo_suscripcion === 'institucional';
@@ -84,14 +121,21 @@ const Profile = () => {
             </button>
 
             <div className="system-panel" style={{ display: 'flex', gap: '2rem', alignItems: 'center', marginBottom: '2rem' }}>
-                <img 
-                    src={user.avatar_url || `https://ui-avatars.com/api/?name=${user.nombre}&background=3b82f6&color=fff&rounded=true`} 
-                    alt="Avatar" 
-                    style={{ width: '100px', height: '100px', borderRadius: '50%', border: '4px solid var(--accent-primary)' }} 
-                />
+                <div style={{ position: 'relative' }}>
+                    <img 
+                        src={user.avatar_url || `https://ui-avatars.com/api/?name=${user.nombre}&background=3b82f6&color=fff&rounded=true`} 
+                        alt="Avatar" 
+                        style={{ width: '100px', height: '100px', borderRadius: '50%', border: '4px solid var(--accent-primary)', objectFit: 'cover', opacity: uploadingAvatar ? 0.5 : 1 }} 
+                    />
+                    <label style={{ position: 'absolute', bottom: '-10px', right: '-10px', background: 'var(--accent-primary)', color: 'white', width: '35px', height: '35px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 5px rgba(0,0,0,0.3)' }}>
+                        <span style={{ fontSize: '1.2rem' }}>📷</span>
+                        <input type="file" accept="image/png, image/jpeg, image/webp" style={{ display: 'none' }} onChange={handleAvatarChange} disabled={uploadingAvatar} />
+                    </label>
+                </div>
                 <div>
                     <h1 style={{ margin: '0 0 8px 0', fontSize: '2rem' }}>{user.nombre}</h1>
                     <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '1.1rem' }}>{user.email}</p>
+                    {uploadingAvatar && <p style={{ color: 'var(--accent-primary)', fontSize: '0.85rem', margin: '4px 0 0 0' }}>Subiendo imagen...</p>}
                 </div>
             </div>
 
@@ -169,6 +213,12 @@ const Profile = () => {
             <div id="premium-section" style={{ marginTop: '2rem' }}>
                 <PremiumUpgrade />
             </div>
+
+            {user.rol === 'admin' && (
+                <div id="admin-section" style={{ marginTop: '2rem' }}>
+                    <AdminPanel />
+                </div>
+            )}
         </div>
     );
 };

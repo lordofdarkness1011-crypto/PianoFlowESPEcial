@@ -20,8 +20,8 @@ const requirePremiumAuth = (req, res, next) => {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         req.user = decoded; // Inyectar datos decodificados en el Request
 
-        // 2. Regla de Negocio (Rúbrica): Bloquear a usuarios freemium
-        if (req.user.tipo_suscripcion === 'freemium') {
+        // 2. Regla de Negocio (Rúbrica): Bloquear a usuarios freemium (Excepto ADMIN)
+        if (req.user.tipo_suscripcion === 'freemium' && req.user.rol !== 'admin') {
             logger.warn(`Acceso bloqueado: Usuario freemium (ID: ${req.user.id}) intentó consumir una ruta protegida.`);
             return res.status(403).json({ 
                 success: false, 
@@ -56,7 +56,32 @@ const requireAuth = (req, res, next) => {
     }
 };
 
+const requireAdmin = (req, res, next) => {
+    try {
+        const authHeader = req.headers.authorization;
+        
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            return res.status(401).json({ success: false, message: 'Token JWT ausente o con formato inválido' });
+        }
+
+        const token = authHeader.split(' ')[1];
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        req.user = decoded;
+
+        if (req.user.rol !== 'admin') {
+            logger.warn(`Acceso bloqueado: Usuario no admin (ID: ${req.user.id}) intentó consumir una ruta de administración.`);
+            return res.status(403).json({ success: false, message: 'Acceso denegado: Se requiere rol de administrador' });
+        }
+
+        next();
+    } catch (error) {
+        logger.error(`Token JWT rechazado (requireAdmin): ${error.message}`);
+        return res.status(401).json({ success: false, message: 'Token expirado o manipulado' });
+    }
+};
+
 module.exports = {
     requirePremiumAuth,
-    requireAuth
+    requireAuth,
+    requireAdmin
 };
