@@ -20,6 +20,8 @@ Este proyecto ha sido desarrollado cumpliendo estrictamente con la rúbrica y ex
 ### 🔒 Seguridad de Grado Industrial y Modelos de Negocio
 - **Identidad Federada y JWT (Stateless):** Autenticación tradicional y mediante **Google OAuth 2.0**. Autorización por roles (`freemium`, `premium`, `institucional`).
 - **Autenticación Multi-Factor (MFA / TOTP):** Pines de un solo uso generados criptográficamente para validación de doble factor.
+- **Panel Administrativo (God Mode):** Un dashboard dedicado para la gestión integral de la plataforma. Permite la **suspensión lógica de usuarios (Soft Delete)**, obsequiar meses Premium directamente a cuentas estándar, y generar Códigos de Regalo manualmente (sin procesar pagos) para distribución en campañas.
+- **Auditoría de Facturación:** El sistema registra de manera inmutable el ciclo de vida de los Códigos de Regalo, permitiendo al Administrador rastrear quién emitió el código, quién lo canjeó, su estado actual y la fecha de expiración.
 - **Transacciones y Suscripciones:** Integración oficial con **PayPal** y **PayPhone** empleando Return URLs y Webhooks pasivos para compras y regalos.
 - **Códigos de Regalo (Gift Codes):** Motor criptográfico (`crypto.randomBytes`) que emite códigos de regalo. Utiliza bloqueos de bases de datos `SELECT ... FOR UPDATE` para evitar vulnerabilidades de doble gasto (Race Conditions).
 
@@ -48,7 +50,7 @@ Este proyecto ha sido desarrollado cumpliendo estrictamente con la rúbrica y ex
 ### Capa de Persistencia y Medios
 - **Base de Datos Relacional:** PostgreSQL Serverless
 - **Host de Base de Datos:** Neon.tech
-- **Gestión de Medios:** Cloudinary (Almacenamiento de imágenes optimizadas)
+- **Gestión de Medios:** Cloudinary (Almacenamiento de imágenes de perfil/avatars, resolviendo nativamente la variable global de entorno `CLOUDINARY_URL` para una integración cloud-native fluida y entregando los assets vía CDN).
 
 ---
 
