@@ -9,8 +9,6 @@ const { guardarPartidaConTransaccion } = require('../services/partidaService');
 const pagosRoutes = require('./pagosRoutes');
 const queueRepo = require('../repositories/queue.repository');
 
-const queueRepo = require('../repositories/queue.repository');
-
 const router = express.Router();
 
 // Configuración de Multer para almacenar el archivo en memoria (Buffer)
