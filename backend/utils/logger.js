@@ -18,14 +18,12 @@ const logger = winston.createLogger({
     ]
 });
 
-// En entornos que no son de producción, también imprimimos en la consola
-if (process.env.NODE_ENV !== 'production') {
-    logger.add(new winston.transports.Console({
-        format: winston.format.combine(
-            winston.format.colorize(),
-            winston.format.simple()
-        )
-    }));
-}
+// En entornos de nube como Render, necesitamos ver los logs en la consola siempre
+logger.add(new winston.transports.Console({
+    format: winston.format.combine(
+        winston.format.colorize(),
+        winston.format.simple()
+    )
+}));
 
 module.exports = logger;
