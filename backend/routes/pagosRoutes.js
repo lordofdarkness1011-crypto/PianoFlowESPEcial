@@ -30,11 +30,11 @@ router.post("/paypal/create-order", requireAuth, async (req, res) => {
     try {
         const orderData = req.body;
         
-        let amount = 999; // $9.99 (mensual / regalo 1 mes)
+        let amount = 699; // $6.99 (mensual / regalo 1 mes)
         let description = "Suscripción Premium PianoFlow (1 Mes)";
         
         if (orderData.tipoCompra === 'regalo_1_anio') {
-            amount = 9999; // $99.99
+            amount = 4999; // $49.99
             description = "Código de Regalo Premium PianoFlow (1 Año)";
         } else if (orderData.tipoCompra === 'regalo_1_mes') {
             description = "Código de Regalo Premium PianoFlow (1 Mes)";
@@ -63,7 +63,7 @@ router.post("/paypal/capture-order/:orderId", requireAuth, async (req, res) => {
             // Determinar monto pagado leyendo la respuesta de captura
             const capturedAmount = parseFloat(capture.purchase_units[0].payments.captures[0].amount.value);
             let meses = 1;
-            if (capturedAmount >= 99.00) {
+            if (capturedAmount >= 49.00) {
                 meses = 12;
             }
 
@@ -200,9 +200,9 @@ router.post("/payphone/prepare", requireAuth, async (req, res) => {
         // Pero para simplificar en esta demostración interactiva de prueba:
         const result = await preparePayphonePayment({
             ...req.body,
-            amount: 999, // Fijo a premium
+            amount: 699, // Fijo a premium mensual
             tax: 0,
-            amountWithoutTax: 999
+            amountWithoutTax: 699
         });
 
         res.json({

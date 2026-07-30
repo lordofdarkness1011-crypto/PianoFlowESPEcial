@@ -201,7 +201,7 @@ const PremiumUpgrade = () => {
                                     checked={tipoCompra === 'directo'}
                                     onChange={() => setTipoCompra('directo')}
                                 />
-                                <span>Mejora para mí (1 Mes) - <strong>$9.99</strong></span>
+                                <span>Mejora para mí (1 Mes) - <strong>$6.99</strong></span>
                             </label>
                         )}
                         <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
@@ -211,7 +211,7 @@ const PremiumUpgrade = () => {
                                 checked={tipoCompra === 'regalo_1_mes'}
                                 onChange={() => setTipoCompra('regalo_1_mes')}
                             />
-                            <span>Código de Regalo (1 Mes) - <strong>$9.99</strong></span>
+                            <span>Código de Regalo (1 Mes) - <strong>$6.99</strong></span>
                         </label>
                         <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}>
                             <input 
@@ -220,7 +220,7 @@ const PremiumUpgrade = () => {
                                 checked={tipoCompra === 'regalo_1_anio'}
                                 onChange={() => setTipoCompra('regalo_1_anio')}
                             />
-                            <span>Código de Regalo (1 Año) - <strong>$99.99</strong></span>
+                            <span>Código de Regalo (1 Año) - <strong>$49.99</strong></span>
                         </label>
                     </div>
 
