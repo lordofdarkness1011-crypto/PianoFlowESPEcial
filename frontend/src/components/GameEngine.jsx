@@ -74,6 +74,9 @@ const GameEngine = ({ song, config, isPlaying, countdown, onFinish }) => {
         // El NoteOn fue fresco, si estaba en staleKeys lo removemos por si acaso (aunque debería haberse ido en noteOff)
         state.staleKeys.delete(noteNum);
         
+        // Reproducir el sonido localmente
+        playNote(noteNum, velocity || 80, 'acoustic_grand_piano');
+        
         const currentTime = state.currentTime;
         if (currentTime < 0) return; // No calificar durante la cuenta regresiva
 
@@ -104,6 +107,9 @@ const GameEngine = ({ song, config, isPlaying, countdown, onFinish }) => {
         const state = stateRef.current;
         state.pressedKeys.delete(noteNum);
         state.staleKeys.delete(noteNum); // Al soltar la tecla, se vuelve a habilitar para el próximo acorde
+        
+        // Detener el sonido local
+        stopNote(noteNum, 'acoustic_grand_piano');
     };
 
     useMidi(handleNoteOn, handleNoteOff, null, null);
