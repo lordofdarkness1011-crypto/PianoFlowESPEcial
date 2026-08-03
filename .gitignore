@@ -85,3 +85,9 @@ indicacionesinformefinal.txt
 PrototipoSpringer*.*
 PrototypeSpringer*.*
 *_english.md
+
+# Archivos temporales y de pruebas
+PITCH_DECK_PROMPT.md
+backend/test-cloud*.js
+backend/test-upload-script.js
+Fig7_T_Student.png
