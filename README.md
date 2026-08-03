@@ -6,7 +6,7 @@ Este proyecto ha sido desarrollado cumpliendo estrictamente con la rúbrica y ex
 
 ![PianoFlow Architecture](https://img.shields.io/badge/Architecture-Distributed_PERN-blue)
 ![Status](https://img.shields.io/badge/Status-Production_Ready-success)
-![License](https://img.shields.io/badge/License-MIT-green)
+![License](https://img.shields.io/badge/License-Propietaria-red)
 
 ---
 
