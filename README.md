@@ -109,9 +109,51 @@ npm run dev
 1. Abre tu navegador web en la URL que arrojó el frontend.
 2. Haz clic en **"Iniciar sesión con Google"** o regístrate mediante correo electrónico.
 3. (Opcional) Conecta un piano vía cable USB-MIDI o Bluetooth MIDI a tu computadora.
-4. Navega a la sección **Modo Libre**, **Salas de Concierto**, o aventúrate en el **Modo Versus** para competir con otros pianistas conectados.
+4. Navega a la sección **Modo Libre**, **Salas de Concierto**, o aventúrate en el **Módulo Sala de Conciertos** para competir con otros pianistas conectados.
 5. Adquiere una suscripción Premium mediante pasarelas de prueba para desbloquear todo el potencial.
 
+
+## 🔬 Experimentación Científica y Pruebas de Latencia
+
+Este repositorio incluye los scripts, datos y resultados utilizados para el análisis estadístico comparativo de latencia (HTTP REST vs WebSockets) abordado en nuestro artículo de investigación.
+
+### 📊 Archivos de Experimentación
+- `latencia_test.js`: Script orquestador en Node.js que simula clientes concurrentes, inyecta cargas de trabajo reales e imprime los resultados en formato CSV.
+- `generar_graficos.py`: Script en Python (utilizando Pandas, Matplotlib, Seaborn y SciPy) encargado de leer los CSVs y generar representaciones visuales y estadísticas (como la Prueba T de Welch).
+- `resultados_latencia_http.csv` y `resultados_latencia_ws.csv`: Datasets generados durante la prueba de estrés en estado estable.
+- `Fig2...` a `Fig7...`: Imágenes estáticas con los resultados de las pruebas estadísticas y distribuciones, listas para publicación en la plantilla Springer LNCS.
+
+### 🚀 ¿Cómo reproducir el experimento?
+
+**1. Ejecutar el orquestador de peticiones:**
+Asegúrate de que tu backend esté corriendo localmente. Luego, en una nueva terminal, ejecuta:
+```bash
+npm install axios socket.io-client
+node latencia_test.js
+```
+Esto creará o sobrescribirá los archivos `.csv` en la raíz del proyecto.
+
+**2. Generar las gráficas estadísticas:**
+Es necesario tener instalado Python 3.
+```bash
+# Crear y activar entorno virtual (Recomendado)
+python -m venv venv
+# Windows: venv\Scripts\activate | Linux/Mac: source venv/bin/activate
+
+# Instalar dependencias científicas
+pip install -r requirements.txt
+
+# Ejecutar el motor de gráficos
+python generar_graficos.py
+```
+
+### 📈 Resultados Destacados
+Como parte del estudio estadístico, se logró aislar el desempeño de WebSockets probando que es sistemáticamente más eficiente y estable para este entorno musical distribuido.
+
+![Función de Distribución Acumulada (CDF)](Fig5_CDF.png)
+*Figura: Función de Distribución Acumulada (CDF). La curva de WebSocket alcanza el 100% de probabilidad en una franja de tiempo más baja y concentrada, evitando el desbordamiento hacia la zona de latencia crítica (Spikes).*
+
+---
 
 ## 📝 Autores y Reconocimientos
 

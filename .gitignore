@@ -66,3 +66,22 @@ MIGUEL_ANGEL_MOLINA_LUNA_OLLAMA_BACKUP.json
 actOTP/
 pasarela-mensajes-node/
 ARCHITECTURE.md
+CODIGO_MAESTRO.md
+LOGS_CONSOLA_MAESTRO.md
+HISTORIA_EVOLUTIVA_MAESTRO.md
+
+# Entorno virtual de Python
+venv/
+
+# Archivos de redacción y borradores del artículo científico
+FUENTE_*.md
+ARTICULO_BORRADOR_*.md
+PROMPT_*.md
+PLANTEAMIENTOS_ARTICULO.md
+GUIA_EXPERIMENTO_LATENCIA.md
+TRAZABILIDAD.md
+instrucciones*.txt
+indicacionesinformefinal.txt
+PrototipoSpringer*.*
+PrototypeSpringer*.*
+*_english.md

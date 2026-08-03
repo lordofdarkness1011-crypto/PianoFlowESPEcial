@@ -1,4 +1,5 @@
 const express = require('express');
+const os = require('os');
 const { 
     googleLogin, loginTradicional, verifyMfaLogin, registroTradicional, 
     verifyAccount, resendCode, setupMfa, confirmMfa, getMfaStatus, getMe, uploadAvatar
@@ -17,6 +18,19 @@ const upload = multer({ storage: multer.memoryStorage() });
 // Endpoint de prueba de la cola (Solo para desarrollo/debug)
 router.get('/queue', (req, res) => {
     res.json({ success: true, tasks: queueRepo.getAll() });
+});
+
+// Endpoint de prueba para medir Latencia HTTP (Experimento Artículo Springer)
+router.post('/test/note', (req, res) => {
+    // Simulamos recibir una nota y devolver el timestamp de procesamiento
+    const data = req.body;
+    res.json({ 
+        success: true, 
+        noteReceived: data.midi,
+        serverTime: Date.now(),
+        cpuLoad: os.loadavg()[0],
+        ramMB: (process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2)
+    });
 });
 
 // Rutas públicas: Autenticación

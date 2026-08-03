@@ -16,6 +16,7 @@ const getPublicRooms = () => {
     }));
 };
 
+const os = require('os');
 module.exports = (io) => {
     io.on('connection', (socket) => {
         logger.info(`[Socket.io] Nueva conexión establecida. ID: ${socket.id}`);
@@ -137,6 +138,16 @@ module.exports = (io) => {
                     instrument
                 });
             }
+        });
+
+        // Evento especial para medir latencia (Experimento Artículo Springer)
+        socket.on('test_latencia_ws', (data) => {
+            socket.emit('test_latencia_ws_response', {
+                ...data,
+                serverTime: Date.now(),
+                cpuLoad: os.loadavg()[0],
+                ramMB: (process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2)
+            });
         });
 
         socket.on('disconnect', () => {
