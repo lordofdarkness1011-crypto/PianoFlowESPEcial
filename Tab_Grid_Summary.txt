@@ -1,0 +1,25 @@
+======================================================================
+GRID EXPERIMENT SUMMARY
+======================================================================
+  Cells completed: 16/16
+  WS outperforms HTTP (>50ms miss rate): 0/16 conditions
+  HTTP outperforms WS: 16/16 conditions
+
+  Operating region interpretation:
+    delay=  0ms loss=   0%  →  HTTP 100.0% miss  WS 100.0% miss  [TIE]
+    delay=  0ms loss= 0.5%  →  HTTP 100.0% miss  WS 100.0% miss  [TIE]
+    delay=  0ms loss=   1%  →  HTTP 100.0% miss  WS 100.0% miss  [TIE]
+    delay=  0ms loss=   3%  →  HTTP 100.0% miss  WS 100.0% miss  [TIE]
+    delay= 20ms loss=   0%  →  HTTP 100.0% miss  WS 100.0% miss  [TIE]
+    delay= 20ms loss= 0.5%  →  HTTP 100.0% miss  WS 100.0% miss  [TIE]
+    delay= 20ms loss=   1%  →  HTTP 100.0% miss  WS 100.0% miss  [TIE]
+    delay= 20ms loss=   3%  →  HTTP 100.0% miss  WS 100.0% miss  [TIE]
+    delay= 50ms loss=   0%  →  HTTP 100.0% miss  WS 100.0% miss  [TIE]
+    delay= 50ms loss= 0.5%  →  HTTP 100.0% miss  WS 100.0% miss  [TIE]
+    delay= 50ms loss=   1%  →  HTTP 100.0% miss  WS 100.0% miss  [TIE]
+    delay= 50ms loss=   3%  →  HTTP 100.0% miss  WS 100.0% miss  [TIE]
+    delay=100ms loss=   0%  →  HTTP 100.0% miss  WS 100.0% miss  [TIE]
+    delay=100ms loss= 0.5%  →  HTTP 100.0% miss  WS 100.0% miss  [TIE]
+    delay=100ms loss=   1%  →  HTTP 100.0% miss  WS 100.0% miss  [TIE]
+    delay=100ms loss=   3%  →  HTTP 100.0% miss  WS 100.0% miss  [TIE]
+======================================================================

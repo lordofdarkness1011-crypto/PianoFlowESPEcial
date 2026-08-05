@@ -1,0 +1,15 @@
+============================================================
+TABLE: Deadline-Miss Rate (%)
+   Threshold |    HTTP REST |    WebSocket
+------------------------------------------------------------
+        20 ms |     100.00 % |     100.00 %
+        50 ms |     100.00 % |     100.00 %
+       100 ms |     100.00 % |     100.00 %
+============================================================
+Interpretation:
+  At the 50 ms musical-coherence threshold defined in the abstract,
+  HTTP REST missed 100.0% of events and
+  WebSocket missed 100.0% of events.
+  Under the tested condition (50ms lag + 1% loss), neither protocol
+  fully satisfies the strict ≤50 ms coherence criterion.
+============================================================

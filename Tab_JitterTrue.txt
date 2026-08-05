@@ -1,0 +1,17 @@
+======================================================================
+TABLE: True Inter-Event Jitter Statistics
+Definition: Jitter[i] = |RTT[i] - RTT[i-1]| per client time series
+----------------------------------------------------------------------
+      Metric |    HTTP REST |    WebSocket
+----------------------------------------------------------------------
+        Mean |      25.72 ms |      15.88 ms
+      Median |       4.00 ms |       1.00 ms
+         P90 |      32.00 ms |      42.00 ms
+         P95 |     164.00 ms |      46.00 ms
+         P99 |     375.00 ms |     241.25 ms
+         Max |    1153.00 ms |     444.00 ms
+     Std Dev |      79.09 ms |      39.18 ms
+======================================================================
+NOTE: 'Maximum latency' ≠ 'Jitter'. Maximum latency is the single worst
+observed value. Jitter quantifies variation between consecutive events.
+======================================================================

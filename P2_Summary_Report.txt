@@ -1,0 +1,39 @@
+======================================================================
+P2 ANALYSIS SUMMARY REPORT
+======================================================================
+
+--- DEADLINE-MISS RATES (STEADY phase, 3,600 events/protocol) ---
+  At 20ms:  HTTP 100.0%  |  WS 100.0%
+  At 50ms:  HTTP 100.0%  |  WS 100.0%
+  At 100ms: HTTP 100.0%  |  WS 100.0%
+
+--- TRUE INTER-EVENT JITTER ---
+  HTTP: mean=25.7ms  P99=375.0ms  max=1153.0ms
+  WS:   mean=15.9ms   P99=241.3ms   max=444.0ms
+
+--- CLIENT-LEVEL MEANS (honest effective n=4/protocol) ---
+  HTTP client means: [143.2, 143.1, 139.8, 142.5]
+  WS   client means: [174.3, 175.3, 175.2, 180.5]
+
+--- EXTENDED PERCENTILES ---
+      Mean: HTTP=142.1ms  WS=176.3ms
+    Median: HTTP=129.0ms  WS=164.0ms
+       P50: HTTP=129.0ms  WS=164.0ms
+       P90: HTTP=165.0ms  WS=248.0ms
+       P95: HTTP=169.0ms  WS=332.0ms
+       P99: HTTP=472.0ms  WS=449.0ms
+     P99.9: HTTP=752.9ms  WS=532.4ms
+       Max: HTTP=1318.0ms  WS=580.0ms
+    StdDev: HTTP=59.9ms  WS=63.1ms
+
+--- FILES GENERATED ---
+  Tab_DeadlineMiss.txt       Deadline-miss rate table
+  Tab_JitterTrue.txt         True inter-event jitter statistics
+  Tab_ClientLevel.txt        Per-client aggregation + corrected test
+  Tab_ExtendedPercentiles.txt Extended p50/p90/p95/p99/p99.9/max
+  Fig_DeadlineMiss.png       Deadline-miss bar chart
+  Fig_JitterDist.png         True jitter violin plot
+  Fig_ClientBoxplot.png      Per-client boxplots
+  Fig_CDF_Annotated.png      CDF with deadline markers
+  Fig_PercentileTable.png    Extended percentile bar chart
+======================================================================
