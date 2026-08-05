@@ -1,0 +1,30 @@
+Data loaded: 7200 total steady samples.
+protocol
+HTTP    142.134167
+WS      176.348056
+Name: Latencia_ms, dtype: float64
+             Mixed Linear Model Regression Results
+================================================================
+Model:               MixedLM   Dependent Variable:   Latencia_ms
+No. Observations:    7200      Method:               REML       
+No. Groups:          4         Scale:                3782.7222  
+Min. group size:     1800      Log-Likelihood:       -39871.4274
+Max. group size:     1800      Converged:            Yes        
+Mean group size:     1800.0                                     
+----------------------------------------------------------------
+                   Coef.  Std.Err.    z    P>|z|  [0.025  0.975]
+----------------------------------------------------------------
+Intercept         142.134    1.109 128.159 0.000 139.960 144.308
+C(protocol)[T.WS]  34.214    1.450  23.601 0.000  31.373  37.055
+Group Var           0.717    0.037                              
+================================================================
+
+
+--- EXACT REQUESTED NUMBERS ---
+Fixed effect coefficient for protocol (WS vs HTTP base): 34.2139
+Standard error of the coefficient: 1.4497
+95% Confidence Interval: [31.3726, 37.0552]
+p-value for protocol: 3.7348e-123
+Random effect variance (ClienteID variance): 0.7169
+
+Model converged successfully.
